@@ -1,65 +1,84 @@
-import Image from "next/image";
+import { fetchTournamentData, buildTournament } from "@/lib/espn";
+import { fetchOdds, parseOdds, makeMatchKey } from "@/lib/odds";
+import { predictMatchup } from "@/lib/prediction";
+import type { Prediction, GameOdds, Matchup } from "@/lib/types";
+import { Bracket } from "@/components/bracket/Bracket";
+import { Header } from "@/components/layout/Header";
+import { AdSlot } from "@/components/layout/AdSlot";
 
-export default function Home() {
+async function getTournamentData() {
+  const events = await fetchTournamentData();
+  const tournament = buildTournament(events);
+
+  // Fetch odds
+  const oddsData = await fetchOdds();
+  const oddsMap = oddsData ? parseOdds(oddsData) : new Map<string, GameOdds>();
+
+  // Generate predictions for all matchups (as plain object for serialization)
+  const predictions: Record<string, Prediction> = {};
+  const odds: Record<string, GameOdds> = {};
+  const allMatchups: Matchup[] = [
+    ...tournament.regions.flatMap((r) => r.rounds.flatMap((rd) => rd.matchups)),
+    ...tournament.finalFour,
+    ...(tournament.championship ? [tournament.championship] : []),
+  ];
+
+  for (const matchup of allMatchups) {
+    const team1 = matchup.teams[0];
+    const team2 = matchup.teams[1];
+    if (!team1 || !team2) continue;
+
+    // Try to find odds for this matchup
+    const matchKey = makeMatchKey(team1.name, team2.name);
+    const gameOdds = oddsMap.get(matchKey);
+    if (gameOdds) {
+      odds[matchup.gameId] = gameOdds;
+    }
+
+    const impliedProb = gameOdds?.impliedProbability ?? null;
+    predictions[matchup.gameId] = predictMatchup(
+      team1.seed,
+      team2.seed,
+      matchup.roundNumber,
+      impliedProb
+    );
+  }
+
+  return { tournament, predictions, odds };
+}
+
+export default async function Home() {
+  const { tournament, predictions, odds } = await getTournamentData();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <main className="max-w-[1600px] mx-auto px-4 py-4">
+        <AdSlot adSlot="top-banner" adFormat="horizontal" className="mb-4" />
+
+        <div className="text-center mb-4">
+          <p className="text-sm text-muted-foreground">
+            Click any matchup for full details including venue, TV channel, odds, and win probability.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        <Bracket
+          tournament={tournament}
+          predictions={predictions}
+          odds={odds}
+        />
+
+        <AdSlot adSlot="bottom-banner" adFormat="horizontal" className="mt-4" />
       </main>
+
+      <footer className="border-t py-6 text-center text-xs text-muted-foreground">
+        <div className="max-w-[1600px] mx-auto px-4 flex flex-wrap justify-center gap-4">
+          <span>&copy; 2026 March Madness Bracket Hub</span>
+          <a href="/privacy" className="hover:underline">Privacy Policy</a>
+          <a href="/about" className="hover:underline">About</a>
+        </div>
+      </footer>
     </div>
   );
 }
