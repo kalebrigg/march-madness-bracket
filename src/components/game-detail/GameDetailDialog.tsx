@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { format } from "date-fns";
+import { ChevronsUpDown, ChevronsDownUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -43,9 +45,17 @@ function PreGameBadge({ label = "Pre-game estimate" }: { label?: string }) {
 }
 
 export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClose }: GameDetailDialogProps) {
+  const [expandAll, setExpandAll] = useState<boolean | null>(null);
+
   if (!matchup) return null;
 
   const { teams, status, score, winner, startTime, venue, city, state, broadcast } = matchup;
+
+  // Shared props for every CollapsibleSection
+  const sectionProps = {
+    forceOpen: expandAll ?? undefined,
+    onToggle: () => setExpandAll(null), // user manually toggled → back to individual control
+  };
   const team1 = teams[0];
   const team2 = teams[1];
 
@@ -61,9 +71,22 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
     <Dialog open={!!matchup} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-center">
-            {team1?.name ?? "TBD"} vs {team2?.name ?? "TBD"}
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle className="flex-1 text-center">
+              {team1?.name ?? "TBD"} vs {team2?.name ?? "TBD"}
+            </DialogTitle>
+            <button
+              type="button"
+              title={expandAll === true ? "Collapse all sections" : "Expand all sections"}
+              onClick={() => setExpandAll((v) => (v === true ? false : true))}
+              className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              {expandAll === true
+                ? <ChevronsDownUp className="h-4 w-4" />
+                : <ChevronsUpDown className="h-4 w-4" />
+              }
+            </button>
+          </div>
         </DialogHeader>
 
         {/* Teams header — always visible */}
@@ -106,7 +129,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         </div>
 
         {/* ── Game Info ─────────────────────────────────────────── */}
-        <CollapsibleSection title="Game Info" defaultOpen={true}>
+        <CollapsibleSection title="Game Info" defaultOpen={true} {...sectionProps}>
           <div className="space-y-2 text-sm">
             {status === "in" && (
               <div className="flex items-center gap-2 text-red-600 font-semibold">
@@ -148,6 +171,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             title="Win Probability"
             badge={status !== "pre" ? <PreGameBadge /> : undefined}
             defaultOpen={true}
+            {...sectionProps}
           >
             <div className="space-y-3 pt-1">
               <div className="flex h-6 rounded-full overflow-hidden text-[10px] font-bold text-white">
@@ -200,6 +224,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
               title="KenPom Projection"
               badge={status !== "pre" ? <PreGameBadge /> : undefined}
               defaultOpen={true}
+              {...sectionProps}
             >
               <div className="space-y-2 pt-1">
                 {status === "post" && score ? (
@@ -317,6 +342,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
               title="Monte Carlo Simulation"
               badge={status !== "pre" ? <PreGameBadge /> : undefined}
               defaultOpen={false}
+              {...sectionProps}
             >
               <div className="pt-1">
                 <MonteCarloSection
@@ -349,6 +375,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
               title="Edge & Value"
               badge={status !== "pre" ? <PreGameBadge label="Pre-game lines" /> : undefined}
               defaultOpen={true}
+              {...sectionProps}
             >
               <div className="space-y-2 pt-1">
                 <table className="w-full text-xs">
@@ -401,6 +428,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             title="Betting Odds"
             badge={status !== "pre" ? <PreGameBadge label="Pre-game lines" /> : undefined}
             defaultOpen={true}
+            {...sectionProps}
           >
             <div className="space-y-3 pt-1">
               {odds && odds.bookmakers && odds.bookmakers.length > 0 ? (
@@ -479,7 +507,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
 
         {/* ── KenPom Ratings ────────────────────────────────────── */}
         {team1 && team2 && (
-          <CollapsibleSection title="KenPom Ratings" defaultOpen={false}>
+          <CollapsibleSection title="KenPom Ratings" defaultOpen={false} {...sectionProps}>
             <div className="space-y-2 pt-1">
               {(!kp1 && !kp2) ? (
                 <div className="text-xs text-muted-foreground italic py-2">
