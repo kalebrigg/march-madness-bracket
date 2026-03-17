@@ -1,39 +1,53 @@
 import type { KenPomRating, TeamKenPom } from "./types";
 
 /**
- * Fetch KenPom ratings data.
- * Since KenPom doesn't have a public API, this uses a scraping approach.
- * Returns null if unable to fetch.
+ * Parse KenPom CSV data into TeamKenPom format.
+ * Expected CSV columns: Rk, Team, Conf, W-L, NetRtg, ORtg, _, DRtg, _, AdjT, _, Luck
  */
-export async function fetchKenPomData(): Promise<TeamKenPom | null> {
-  try {
-    // Try to fetch from a proxy API that serves KenPom data
-    // Using an alternative approach: fetch from a public data source or API
-    const res = await fetch("https://kenpom.com/", {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      },
-      next: { revalidate: 3600 }, // 1 hour cache
-    });
+export function parseKenPomCSV(csvText: string): TeamKenPom {
+  const lines = csvText.trim().split("\n");
+  const data: TeamKenPom = {};
 
-    if (!res.ok) {
-      console.warn("Could not fetch KenPom data");
-      return null;
+  for (const line of lines) {
+    // Skip empty lines or header lines
+    if (!line.trim() || line.includes("Strength of Schedule") || line.includes("Rk,Team")) {
+      continue;
     }
 
-    // For now, return a placeholder/empty object
-    // In production, you would parse the HTML here
-    return {};
-  } catch (error) {
-    console.warn("Error fetching KenPom data:", error);
-    return null;
+    const parts = line.split(",").map(p => p.trim());
+
+    // Need at least: Rk, Team, Conf, W-L, NetRtg, ORtg, _, DRtg, _, AdjT, _, Luck
+    if (parts.length < 12 || !parts[0].match(/^\d+$/)) {
+      continue;
+    }
+
+    const rank = parseInt(parts[0]);
+    const teamName = parts[1];
+    const netRtg = parseFloat(parts[4]);
+    const ORtg = parseFloat(parts[5]);
+    const DRtg = parseFloat(parts[7]);
+    const tempo = parseFloat(parts[9]);
+    const luck = parseFloat(parts[11]);
+
+    if (!isNaN(rank) && teamName) {
+      data[teamName] = {
+        rank,
+        teamName,
+        adjEM: netRtg,
+        adjOffense: ORtg,
+        adjDefense: DRtg,
+        tempo,
+        luck: isNaN(luck) ? 0 : luck,
+      };
+    }
   }
+
+  return data;
 }
 
 /**
  * Get KenPom rating for a specific team by name.
- * Searches the team name in the KenPom data.
+ * Searches the team name in the KenPom data with flexible matching.
  */
 export function getTeamKenPom(
   teamName: string,
@@ -54,11 +68,18 @@ export function getTeamKenPom(
     }
   }
 
-  // Try partial match (team name contains)
+  // Try partial match (search for team name in key or vice versa)
   for (const [key, value] of Object.entries(kenPomData)) {
+    const lowerKey = key.toLowerCase();
+    // Remove common suffixes for comparison
+    const cleanKey = lowerKey.replace(/\s+(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16)$/, "");
+    const cleanTeam = lowerTeamName.replace(/\s+\d+$/, "");
+
     if (
-      key.toLowerCase().includes(lowerTeamName) ||
-      lowerTeamName.includes(key.toLowerCase())
+      cleanKey.includes(cleanTeam) ||
+      cleanTeam.includes(cleanKey) ||
+      lowerKey.includes(lowerTeamName) ||
+      lowerTeamName.includes(lowerKey)
     ) {
       return value;
     }
@@ -68,39 +89,29 @@ export function getTeamKenPom(
 }
 
 /**
- * Mock KenPom data for development/testing
- * Replace with real data when KenPom integration is complete
+ * Real KenPom data parsed from CSV
+ * Will be populated from the CSV file
  */
-export const MOCK_KENPOM_DATA: TeamKenPom = {
-  Alabama: {
-    rank: 18,
-    teamName: "Alabama",
-    adjEM: 25.7,
-    adjOffense: 129.0,
-    adjDefense: 103.3,
-    tempo: 73.1,
-    sosEM: 16.8,
-    luck: 0.019,
-  },
-  Duke: {
-    rank: 5,
-    teamName: "Duke",
-    adjEM: 29.2,
-    adjOffense: 131.2,
-    adjDefense: 102.0,
-    tempo: 70.5,
-    sosEM: 11.2,
-    luck: -0.025,
-  },
-  Kansas: {
-    rank: 3,
-    teamName: "Kansas",
-    adjEM: 31.5,
-    adjOffense: 132.8,
-    adjDefense: 101.3,
-    tempo: 68.9,
-    sosEM: 15.3,
-    luck: 0.045,
-  },
-  // Add more teams as needed
+export const KENPOM_DATA: TeamKenPom = {
+  "Duke": { rank: 1, teamName: "Duke", adjEM: 38.9, adjOffense: 128, adjDefense: 89.1, tempo: 65.3, luck: 0.049 },
+  "Arizona": { rank: 2, teamName: "Arizona", adjEM: 37.66, adjOffense: 127.7, adjDefense: 90, tempo: 69.8, luck: 0.023 },
+  "Michigan": { rank: 3, teamName: "Michigan", adjEM: 37.59, adjOffense: 126.6, adjDefense: 89, tempo: 70.9, luck: 0.045 },
+  "Florida": { rank: 4, teamName: "Florida", adjEM: 33.79, adjOffense: 125.5, adjDefense: 91.7, tempo: 70.5, luck: -0.036 },
+  "Houston": { rank: 5, teamName: "Houston", adjEM: 33.43, adjOffense: 124.9, adjDefense: 91.4, tempo: 63.3, luck: -0.006 },
+  "Iowa St.": { rank: 6, teamName: "Iowa St.", adjEM: 32.42, adjOffense: 123.8, adjDefense: 91.4, tempo: 66.5, luck: -0.012 },
+  "Illinois": { rank: 7, teamName: "Illinois", adjEM: 32.1, adjOffense: 131.2, adjDefense: 99.1, tempo: 65.5, luck: -0.05 },
+  "Purdue": { rank: 8, teamName: "Purdue", adjEM: 31.2, adjOffense: 131.6, adjDefense: 100.4, tempo: 64.4, luck: -0.006 },
+  "Michigan St.": { rank: 9, teamName: "Michigan St.", adjEM: 28.31, adjOffense: 123, adjDefense: 94.7, tempo: 66, luck: 0.005 },
+  "Gonzaga": { rank: 10, teamName: "Gonzaga", adjEM: 28.1, adjOffense: 122, adjDefense: 93.9, tempo: 68.6, luck: 0.072 },
+  "Connecticut": { rank: 11, teamName: "Connecticut", adjEM: 27.87, adjOffense: 122, adjDefense: 94.1, tempo: 64.4, luck: 0.055 },
+  "Vanderbilt": { rank: 12, teamName: "Vanderbilt", adjEM: 27.51, adjOffense: 126.8, adjDefense: 99.3, tempo: 68.8, luck: 0.018 },
+  "Virginia": { rank: 13, teamName: "Virginia", adjEM: 26.71, adjOffense: 122.5, adjDefense: 95.8, tempo: 65.7, luck: 0.056 },
+  "Nebraska": { rank: 14, teamName: "Nebraska", adjEM: 26.16, adjOffense: 118.5, adjDefense: 92.4, tempo: 66.7, luck: 0.034 },
+  "Arkansas": { rank: 15, teamName: "Arkansas", adjEM: 26.05, adjOffense: 127.7, adjDefense: 101.6, tempo: 71, luck: 0.051 },
+  "Tennessee": { rank: 16, teamName: "Tennessee", adjEM: 26.02, adjOffense: 121.1, adjDefense: 95, tempo: 65, luck: -0.06 },
+  "St. John's": { rank: 17, teamName: "St. John's", adjEM: 25.91, adjOffense: 120.1, adjDefense: 94.2, tempo: 69.6, luck: 0.061 },
+  "Alabama": { rank: 18, teamName: "Alabama", adjEM: 25.72, adjOffense: 129, adjDefense: 103.3, tempo: 73.1, luck: 0.019 },
+  "Louisville": { rank: 19, teamName: "Louisville", adjEM: 25.42, adjOffense: 124.1, adjDefense: 98.6, tempo: 69.6, luck: -0.02 },
+  "Texas Tech": { rank: 20, teamName: "Texas Tech", adjEM: 25.22, adjOffense: 125, adjDefense: 99.8, tempo: 66.2, luck: 0.006 },
+  "Kansas": { rank: 21, teamName: "Kansas", adjEM: 24.44, adjOffense: 118.3, adjDefense: 93.9, tempo: 67.6, luck: 0.053 },
 };

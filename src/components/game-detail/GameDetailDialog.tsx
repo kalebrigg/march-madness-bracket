@@ -167,7 +167,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         )}
 
         {/* Odds & Implied Probability */}
-        {odds && odds.bookmakers.length > 0 && status === "pre" && (
+        {status === "pre" && (
           <>
             <Separator />
             <div className="space-y-3">
@@ -175,54 +175,66 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                 Betting Odds
               </div>
 
-              {/* Implied Probability from Odds */}
-              {impliedProbs && (
-                <div className="bg-muted/50 rounded-md p-2 mb-2">
-                  <div className="text-[11px] font-semibold text-muted-foreground mb-2">
-                    Implied Win Probability (Vig Removed)
-                  </div>
-                  <div className="flex h-5 rounded overflow-hidden text-[9px] font-bold text-white">
-                    <div
-                      className="flex items-center justify-center transition-all"
-                      style={{
-                        width: `${impliedProbs[0] * 100}%`,
-                        backgroundColor: team1?.color || "#666",
-                      }}
-                    >
-                      {formatProbability(impliedProbs[0])}
+              {odds && odds.bookmakers && odds.bookmakers.length > 0 ? (
+                <>
+                  {/* Implied Probability from Odds */}
+                  {impliedProbs && (
+                    <div className="bg-muted/50 rounded-md p-2 mb-2">
+                      <div className="text-[11px] font-semibold text-muted-foreground mb-2">
+                        Implied Win Probability (Vig Removed)
+                      </div>
+                      <div className="flex h-5 rounded overflow-hidden text-[9px] font-bold text-white">
+                        <div
+                          className="flex items-center justify-center transition-all"
+                          style={{
+                            width: `${impliedProbs[0] * 100}%`,
+                            backgroundColor: team1?.color || "#666",
+                          }}
+                        >
+                          {formatProbability(impliedProbs[0])}
+                        </div>
+                        <div
+                          className="flex items-center justify-center transition-all"
+                          style={{
+                            width: `${impliedProbs[1] * 100}%`,
+                            backgroundColor: team2?.color || "#666",
+                          }}
+                        >
+                          {formatProbability(impliedProbs[1])}
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      className="flex items-center justify-center transition-all"
-                      style={{
-                        width: `${impliedProbs[1] * 100}%`,
-                        backgroundColor: team2?.color || "#666",
-                      }}
-                    >
-                      {formatProbability(impliedProbs[1])}
-                    </div>
-                  </div>
+                  )}
+
+                  {/* Moneyline odds table */}
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-muted-foreground border-b">
+                        <th className="text-left py-2 font-semibold">Sportsbook</th>
+                        <th className="text-right py-2 font-semibold">{team1?.abbreviation ?? "Team 1"}</th>
+                        <th className="text-right py-2 font-semibold">{team2?.abbreviation ?? "Team 2"}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {odds.bookmakers.map((bm) => (
+                        <tr key={bm.name} className="border-t border-border/50 hover:bg-muted/30">
+                          <td className="py-2 font-medium">{bm.name}</td>
+                          <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[0])}</td>
+                          <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[1])}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              ) : (
+                <div className="text-xs text-muted-foreground italic py-3 text-center">
+                  Live betting odds not yet available for this matchup.
+                  <br />
+                  Check <a href="https://theoddapi.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                    The Odds API
+                  </a> for current lines.
                 </div>
               )}
-
-              {/* Moneyline odds table */}
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-muted-foreground border-b">
-                    <th className="text-left py-2 font-semibold">Sportsbook</th>
-                    <th className="text-right py-2 font-semibold">{team1?.abbreviation ?? "Team 1"}</th>
-                    <th className="text-right py-2 font-semibold">{team2?.abbreviation ?? "Team 2"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {odds.bookmakers.map((bm) => (
-                    <tr key={bm.name} className="border-t border-border/50 hover:bg-muted/30">
-                      <td className="py-2 font-medium">{bm.name}</td>
-                      <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[0])}</td>
-                      <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[1])}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </>
         )}

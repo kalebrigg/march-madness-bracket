@@ -1,7 +1,7 @@
 import { fetchTournamentData, buildTournament } from "@/lib/espn";
 import { fetchOdds, parseOdds, makeMatchKey } from "@/lib/odds";
 import { predictMatchup } from "@/lib/prediction";
-import { MOCK_KENPOM_DATA } from "@/lib/kenpom";
+import { KENPOM_DATA } from "@/lib/kenpom";
 import type { Prediction, GameOdds, Matchup, TeamKenPom } from "@/lib/types";
 import { Bracket } from "@/components/bracket/Bracket";
 import { Header } from "@/components/layout/Header";
@@ -15,8 +15,8 @@ async function getTournamentData() {
   const oddsData = await fetchOdds();
   const oddsMap = oddsData ? parseOdds(oddsData) : new Map<string, GameOdds>();
 
-  // Use mock KenPom data for now (can be replaced with real API)
-  const kenPomData: TeamKenPom = MOCK_KENPOM_DATA;
+  // Use real KenPom data
+  const kenPomData: TeamKenPom = KENPOM_DATA;
 
   // Generate predictions for all matchups (as plain object for serialization)
   const predictions: Record<string, Prediction> = {};
