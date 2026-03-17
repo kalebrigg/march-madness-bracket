@@ -21,6 +21,7 @@ import {
   edgeColorClass,
 } from "@/lib/odds-utils";
 import { getTeamKenPom } from "@/lib/kenpom";
+import { calcKenPomProjection, formatScore, formatSpread } from "@/lib/kenpom-model";
 
 interface GameDetailDialogProps {
   matchup: Matchup | null;
@@ -182,6 +183,93 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             </div>
           </>
         )}
+
+        {/* KenPom Game Projection */}
+        {status === "pre" && team1 && team2 && kp1 && kp2 &&
+          kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
+          kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
+          const proj = calcKenPomProjection(
+            kp1.tempo, kp1.adjOffense, kp1.adjDefense,
+            kp2.tempo, kp2.adjOffense, kp2.adjDefense
+          );
+          // Consensus book spread (average of available books, team1's side)
+          const bookSpreadValues = odds?.bookmakers
+            .filter((bm) => bm.spread !== undefined)
+            .map((bm) => bm.spread![0]) ?? [];
+          const avgBookSpread = bookSpreadValues.length > 0
+            ? bookSpreadValues.reduce((a, b) => a + b, 0) / bookSpreadValues.length
+            : null;
+
+          const spreadDiff = avgBookSpread !== null ? proj.spread - (-avgBookSpread) : null;
+
+          return (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  KenPom Projection
+                </div>
+
+                {/* Projected score banner */}
+                <div className="flex items-center justify-between bg-muted/40 rounded-md px-3 py-2">
+                  <div className="text-center flex-1">
+                    <div className="text-xl font-bold font-mono">{formatScore(proj.ptsA)}</div>
+                    <div className="text-[10px] text-muted-foreground">{team1.abbreviation}</div>
+                  </div>
+                  <div className="text-muted-foreground text-xs font-semibold px-3">PROJ</div>
+                  <div className="text-center flex-1">
+                    <div className="text-xl font-bold font-mono">{formatScore(proj.ptsB)}</div>
+                    <div className="text-[10px] text-muted-foreground">{team2.abbreviation}</div>
+                  </div>
+                </div>
+
+                <table className="w-full text-xs">
+                  <tbody>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Possessions</td>
+                      <td className="text-right py-1.5 font-mono" colSpan={2}>{proj.poss.toFixed(1)}</td>
+                    </tr>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Proj. Spread</td>
+                      <td className="text-right py-1.5 font-mono">
+                        {team1.abbreviation} {formatSpread(proj.spread)}
+                      </td>
+                      <td className="text-right py-1.5 text-muted-foreground/70">
+                        {avgBookSpread !== null
+                          ? `book: ${avgBookSpread > 0 ? "+" : ""}${avgBookSpread.toFixed(1)}`
+                          : ""}
+                      </td>
+                    </tr>
+                    {spreadDiff !== null && (
+                      <tr className="border-t border-border/50">
+                        <td className="py-1.5 text-muted-foreground">Spread vs. Book</td>
+                        <td className={`text-right py-1.5 font-mono col-span-2 ${
+                          Math.abs(spreadDiff) > 2 ? "text-green-600 font-semibold" : "text-muted-foreground"
+                        }`} colSpan={2}>
+                          {spreadDiff >= 0 ? "+" : ""}{spreadDiff.toFixed(1)} pts
+                          {Math.abs(spreadDiff) > 3 ? " ← value" : ""}
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Proj. Total</td>
+                      <td className="text-right py-1.5 font-mono">{proj.total.toFixed(1)}</td>
+                      <td className="text-right py-1.5 text-muted-foreground/70"></td>
+                    </tr>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Win Prob (KP)</td>
+                      <td className="text-right py-1.5 font-mono">{team1.abbreviation} {Math.round(proj.winProbA * 100)}%</td>
+                      <td className="text-right py-1.5 font-mono text-muted-foreground">{team2.abbreviation} {Math.round(proj.winProbB * 100)}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-[10px] text-muted-foreground/60 pt-0.5">
+                  Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line.
+                </p>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Edge & Value Analysis */}
         {prediction && status === "pre" && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && (() => {
