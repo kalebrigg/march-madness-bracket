@@ -13,7 +13,7 @@ export async function fetchOdds(): Promise<OddsAPIResponse[] | null> {
   if (!apiKey) return null;
 
   try {
-    const url = `${ODDS_API_BASE}/odds?regions=us&markets=h2h&oddsFormat=american&apiKey=${apiKey}`;
+    const url = `${ODDS_API_BASE}/odds?regions=us&markets=h2h,spreads&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm&apiKey=${apiKey}`;
     const res = await fetch(url, { next: { revalidate: 1800 } }); // 30 min cache
     if (!res.ok) {
       console.error(`Odds API error: ${res.status}`);
@@ -55,21 +55,34 @@ export function parseOdds(oddsData: OddsAPIResponse[]): Map<string, GameOdds> {
 
       // Explicitly match outcomes to home/away team by name.
       // Do NOT rely on array index — outcome order is not consistent across bookmakers.
-      const findPrice = (teamName: string): number => {
+      const findOutcome = (market: typeof h2h, teamName: string) => {
         const norm = normalizeTeamName(teamName).toLowerCase();
-        const outcome = h2h.outcomes.find((o) => {
+        return market.outcomes.find((o) => {
           const n = normalizeTeamName(o.name).toLowerCase();
           return n === norm || n.includes(norm) || norm.includes(n);
         });
-        return outcome?.price ?? 0;
       };
 
-      const homeOdds = findPrice(game.home_team);
-      const awayOdds = findPrice(game.away_team);
+      const homeMoneyline = findOutcome(h2h, game.home_team)?.price ?? 0;
+      const awayMoneyline = findOutcome(h2h, game.away_team)?.price ?? 0;
+
+      // Parse spread market if available
+      const spreadsMarket = bm.markets.find((m) => m.key === "spreads");
+      let spread: [number, number] | undefined;
+      let spreadJuice: [number, number] | undefined;
+      if (spreadsMarket && spreadsMarket.outcomes.length >= 2) {
+        const homeSpread = findOutcome(spreadsMarket, game.home_team);
+        const awaySpread = findOutcome(spreadsMarket, game.away_team);
+        if (homeSpread?.point !== undefined && awaySpread?.point !== undefined) {
+          spread = [homeSpread.point, awaySpread.point];
+          spreadJuice = [homeSpread.price, awaySpread.price];
+        }
+      }
 
       bookmakers.push({
         name: bm.title,
-        moneyline: [homeOdds, awayOdds],
+        moneyline: [homeMoneyline, awayMoneyline],
+        ...(spread && { spread, spreadJuice }),
       });
     }
 

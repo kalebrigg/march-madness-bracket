@@ -57,6 +57,8 @@ export interface GameOdds {
 export interface BookmakerOdds {
   name: string;
   moneyline: [number, number]; // [team1 odds, team2 odds] in American format
+  spread?: [number, number]; // [team1 point spread, team2 point spread] e.g. [-13.5, 13.5]
+  spreadJuice?: [number, number]; // [team1 juice, team2 juice] e.g. [-110, -110]
 }
 
 // ── Predictions ──
@@ -168,6 +170,7 @@ export interface OddsAPIBookmaker {
     outcomes: {
       name: string;
       price: number;
+      point?: number; // present for spreads/totals markets
     }[];
   }[];
 }

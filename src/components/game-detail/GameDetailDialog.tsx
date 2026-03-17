@@ -214,21 +214,38 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                     </div>
                   )}
 
-                  {/* Moneyline odds table */}
+                  {/* Odds table: moneyline + spread */}
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="text-muted-foreground border-b">
                         <th className="text-left py-2 font-semibold">Sportsbook</th>
-                        <th className="text-right py-2 font-semibold">{team1?.abbreviation ?? "Team 1"}</th>
-                        <th className="text-right py-2 font-semibold">{team2?.abbreviation ?? "Team 2"}</th>
+                        <th className="text-right py-2 font-semibold" colSpan={2}>{team1?.abbreviation ?? "Team 1"}</th>
+                        <th className="text-right py-2 font-semibold" colSpan={2}>{team2?.abbreviation ?? "Team 2"}</th>
+                      </tr>
+                      <tr className="text-muted-foreground/70 border-b text-[10px]">
+                        <th className="text-left pb-1.5"></th>
+                        <th className="text-right pb-1.5">ML</th>
+                        <th className="text-right pb-1.5">Spread</th>
+                        <th className="text-right pb-1.5">ML</th>
+                        <th className="text-right pb-1.5">Spread</th>
                       </tr>
                     </thead>
                     <tbody>
                       {odds.bookmakers.map((bm) => (
                         <tr key={bm.name} className="border-t border-border/50 hover:bg-muted/30">
                           <td className="py-2 font-medium">{bm.name}</td>
-                          <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[0])}</td>
-                          <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[1])}</td>
+                          <td className="text-right py-2 font-mono">{formatOdds(bm.moneyline[0])}</td>
+                          <td className="text-right py-2 font-mono">
+                            {bm.spread
+                              ? `${bm.spread[0] > 0 ? "+" : ""}${bm.spread[0]} (${formatOdds(bm.spreadJuice?.[0] ?? -110)})`
+                              : "—"}
+                          </td>
+                          <td className="text-right py-2 font-mono">{formatOdds(bm.moneyline[1])}</td>
+                          <td className="text-right py-2 font-mono">
+                            {bm.spread
+                              ? `${bm.spread[1] > 0 ? "+" : ""}${bm.spread[1]} (${formatOdds(bm.spreadJuice?.[1] ?? -110)})`
+                              : "—"}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
