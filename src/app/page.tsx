@@ -9,7 +9,7 @@ export default async function Home() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-[1600px] mx-auto px-4 py-4">
+      <main className="max-w-[1920px] mx-auto px-2 py-4 lg:px-3">
         <div className="text-center mb-4 no-print">
           <p className="text-sm text-muted-foreground">
             Click any matchup for full details including venue, TV channel, odds, KenPom ratings, and win probability.
