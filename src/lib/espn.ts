@@ -57,8 +57,19 @@ export async function fetchTournamentData(): Promise<ESPNEvent[]> {
  */
 function parseHeadline(headline: string): { region: string; roundName: string } | null {
   const parts = headline.split(" - ");
+
+  // First Four check must come before Championship check — "First Four" headlines
+  // only have 2 parts and also contain the word "Championship", which would
+  // otherwise cause them to be mis-categorised as the national title game.
+  if (headline.toLowerCase().includes("first four")) {
+    // Some ESPN headlines embed the region: "…- South Region - First Four"
+    const regionMatch = headline.match(/(South|East|Midwest|West)\s+Region/i);
+    const region = regionMatch ? regionMatch[1] : "First Four";
+    return { region, roundName: "First Four" };
+  }
+
   if (parts.length < 3) {
-    // Could be Final Four / Championship (no region)
+    // Final Four / Championship (no region segment)
     if (headline.includes("Final Four")) {
       return { region: "Final Four", roundName: "Final Four" };
     }
@@ -213,6 +224,7 @@ export function buildTournament(events: ESPNEvent[]): Tournament {
 
   // Group by region
   const regionMap: Record<string, Matchup[]> = {};
+  const firstFourGames: Matchup[] = [];
   const finalFourGames: Matchup[] = [];
   let championship: Matchup | null = null;
 
@@ -221,6 +233,8 @@ export function buildTournament(events: ESPNEvent[]): Tournament {
       championship = m;
     } else if (m.roundNumber === 5) {
       finalFourGames.push(m);
+    } else if (m.roundNumber === 0) {
+      firstFourGames.push(m);
     } else {
       if (!regionMap[m.region]) regionMap[m.region] = [];
       regionMap[m.region].push(m);
@@ -302,6 +316,7 @@ export function buildTournament(events: ESPNEvent[]): Tournament {
   }
 
   return {
+    firstFour: firstFourGames,
     regions,
     finalFour: finalFourGames,
     championship,

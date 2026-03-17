@@ -1,6 +1,7 @@
 // ── Tournament bracket structure ──
 
 export interface Tournament {
+  firstFour: Matchup[];   // Round 0 play-in games (First Four)
   regions: Region[];
   finalFour: Matchup[];
   championship: Matchup | null;

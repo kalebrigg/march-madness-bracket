@@ -33,7 +33,7 @@ function TeamRow({
       {/* Team color accent bar */}
       {team?.color && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l"
+          className="absolute left-0 top-0 bottom-0 w-[6px]"
           style={{ backgroundColor: `#${team.color.replace(/^#/, "")}` }}
         />
       )}

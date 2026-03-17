@@ -38,6 +38,7 @@ export async function getTournamentData(): Promise<TournamentDataResult> {
   const predictions: Record<string, Prediction> = {};
   const odds: Record<string, GameOdds> = {};
   const allMatchups: Matchup[] = [
+    ...tournament.firstFour,
     ...tournament.regions.flatMap((r) => r.rounds.flatMap((rd) => rd.matchups)),
     ...tournament.finalFour,
     ...(tournament.championship ? [tournament.championship] : []),

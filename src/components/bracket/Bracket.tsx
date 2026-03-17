@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Tournament, Matchup, Prediction, GameOdds, TeamKenPom } from "@/lib/types";
 import { Region } from "./Region";
 import { FinalFour } from "./FinalFour";
+import { FirstFourSection } from "./FirstFourSection";
 import { GameDetailDialog } from "../game-detail/GameDetailDialog";
 
 interface BracketProps {
@@ -28,6 +29,15 @@ export function Bracket({ tournament, predictions, odds, kenPomData }: BracketPr
 
   return (
     <>
+      {/* First Four play-in games — shown above main bracket on all screen sizes */}
+      {tournament.firstFour.length > 0 && (
+        <FirstFourSection
+          games={tournament.firstFour}
+          predictions={predictions}
+          onMatchClick={handleMatchClick}
+        />
+      )}
+
       {/* Desktop: Full horizontal bracket */}
       <div className="hidden lg:flex items-stretch gap-8 overflow-x-auto pb-4 bracket-print-container">
         {/* Left side regions */}
