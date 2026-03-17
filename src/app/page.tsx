@@ -25,10 +25,20 @@ export default async function Home() {
       </main>
 
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        <div className="max-w-[1600px] mx-auto px-4 flex flex-wrap justify-center gap-4">
-          <span>&copy; 2026 March Madness Bracket Hub</span>
-          <a href="/privacy" className="hover:underline">Privacy Policy</a>
-          <a href="/about" className="hover:underline">About</a>
+        <div className="max-w-[1600px] mx-auto px-4 flex flex-col items-center gap-3">
+          <a
+            href="https://buymeacoffee.com/kalebrigg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FFDD00] text-[#000000] font-semibold text-sm hover:bg-[#FFDD00]/90 transition-colors"
+          >
+            ☕ Buy me a coffee
+          </a>
+          <div className="flex flex-wrap justify-center gap-4">
+            <span>&copy; 2026 March Madness Bracket Hub</span>
+            <a href="/privacy" className="hover:underline">Privacy Policy</a>
+            <a href="/about" className="hover:underline">About</a>
+          </div>
         </div>
       </footer>
     </div>
