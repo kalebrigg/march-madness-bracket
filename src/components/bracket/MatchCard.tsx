@@ -18,7 +18,7 @@ function TeamRow({
   score,
   showScore,
 }: {
-  team: { name: string; seed: number; logo: string } | null;
+  team: { name: string; seed: number; logo: string; color: string } | null;
   isWinner: boolean;
   score?: number;
   showScore: boolean;
@@ -26,40 +26,49 @@ function TeamRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-2 py-1",
+        "flex items-center gap-2 px-2 py-1 relative",
         isWinner && "font-bold"
       )}
     >
-      {team ? (
-        <>
-          {team.logo ? (
-            <img
-              src={team.logo}
-              alt=""
-              className="w-5 h-5 object-contain shrink-0"
-            />
-          ) : (
-            <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
-          )}
-          <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
-            {team.seed === 99 ? 0 : team.seed}
-          </span>
-          <span className="truncate flex-1 text-sm">{team.name}</span>
-          {showScore && score !== undefined && (
-            <span className="font-mono tabular-nums font-semibold text-sm">
-              {score}
-            </span>
-          )}
-        </>
-      ) : (
-        <>
-          <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
-          <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
-            0
-          </span>
-          <span className="text-muted-foreground text-sm">TBD</span>
-        </>
+      {/* Team color accent bar */}
+      {team?.color && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l"
+          style={{ backgroundColor: `#${team.color.replace(/^#/, "")}` }}
+        />
       )}
+      <div className="pl-[5px] flex items-center gap-2 w-full">
+        {team ? (
+          <>
+            {team.logo ? (
+              <img
+                src={team.logo}
+                alt=""
+                className="w-5 h-5 object-contain shrink-0"
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
+            )}
+            <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
+              {team.seed === 99 ? 0 : team.seed}
+            </span>
+            <span className="truncate flex-1 text-sm">{team.name}</span>
+            {showScore && score !== undefined && (
+              <span className="font-mono tabular-nums font-semibold text-sm">
+                {score}
+              </span>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
+            <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
+              0
+            </span>
+            <span className="text-muted-foreground text-sm">TBD</span>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -74,12 +83,39 @@ export function MatchCard({
   const team2 = teams[1];
   const isPlaceholder = !team1 && !team2;
 
+  // Determine which team is favored by the model and compute edge color
+  let metricDisplay: React.ReactNode = null;
+  if (prediction && status === "pre" && team1 && team2) {
+    const favored = prediction.team1WinPct >= prediction.team2WinPct ? 0 : 1;
+    const favoredTeam = favored === 0 ? team1 : team2;
+    const favoredPct = favored === 0 ? prediction.team1WinPct : prediction.team2WinPct;
+    const edge = prediction.edge1 != null
+      ? (favored === 0 ? prediction.edge1 : -prediction.edge1)
+      : null;
+
+    // Color by edge: green = model likes favored more than market, red = model behind market
+    const edgeColor =
+      edge == null
+        ? "text-muted-foreground"
+        : edge > 0.03
+        ? "text-green-600 font-semibold"
+        : edge < -0.03
+        ? "text-red-500"
+        : "text-muted-foreground";
+
+    metricDisplay = (
+      <span className={cn("tabular-nums", edgeColor)}>
+        {favoredTeam.abbreviation} {formatProbability(favoredPct)}
+      </span>
+    );
+  }
+
   return (
     <button
       onClick={onClick}
       disabled={isPlaceholder}
       className={cn(
-        "w-full text-left rounded border bg-card text-card-foreground text-xs transition-all",
+        "w-full text-left rounded border bg-card text-card-foreground text-xs transition-all overflow-hidden",
         !isPlaceholder && "hover:shadow-md hover:border-primary/50 cursor-pointer",
         isPlaceholder && "opacity-60 cursor-default",
         status === "in" && "border-red-500 ring-1 ring-red-500/30"
@@ -134,12 +170,7 @@ export function MatchCard({
             <span>TBA</span>
           )}
 
-          {prediction && status === "pre" && team1 && team2 && (
-            <span>
-              {formatProbability(prediction.team1WinPct)} /{" "}
-              {formatProbability(prediction.team2WinPct)}
-            </span>
-          )}
+          {metricDisplay}
         </div>
       )}
     </button>

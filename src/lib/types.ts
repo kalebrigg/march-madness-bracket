@@ -52,6 +52,7 @@ export interface GameOdds {
   awayTeam: string;
   bookmakers: BookmakerOdds[];
   impliedProbability: [number, number] | null; // [team1, team2] true probability (vig removed)
+  consensusTotal?: number | null; // consensus O/U line across books
 }
 
 export interface BookmakerOdds {
@@ -59,6 +60,8 @@ export interface BookmakerOdds {
   moneyline: [number, number]; // [team1 odds, team2 odds] in American format
   spread?: [number, number]; // [team1 point spread, team2 point spread] e.g. [-13.5, 13.5]
   spreadJuice?: [number, number]; // [team1 juice, team2 juice] e.g. [-110, -110]
+  total?: number; // Over/Under line for this bookmaker
+  totalJuice?: [number, number]; // [over juice, under juice]
 }
 
 // ── Predictions ──
@@ -66,7 +69,8 @@ export interface BookmakerOdds {
 export interface Prediction {
   team1WinPct: number; // 0-1
   team2WinPct: number; // 0-1
-  source: "seed-history" | "odds-implied" | "blended";
+  source: "seed-history" | "odds-implied" | "blended" | "kenpom-blended" | "kenpom-only";
+  edge1?: number; // team1 model win% minus vig-free market win% (positive = model likes team1 more)
 }
 
 // ── KenPom Ratings ──

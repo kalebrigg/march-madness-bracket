@@ -24,14 +24,24 @@ function seedBasedWinRate(seed1: number, seed2: number): number {
 
 /**
  * Predict matchup outcome.
- * Uses seed-based history for first round, logistic model for later rounds.
- * When odds-implied probability is available, blends 70% odds + 30% seed model.
+ *
+ * Blend hierarchy (all three available):  40% KenPom + 40% odds + 20% seed
+ * KenPom only (no odds):                  60% KenPom + 40% seed
+ * Odds only (no KenPom):                  70% odds   + 30% seed
+ * Neither:                                100% seed history
+ *
+ * @param seed1          ESPN seed for team 1
+ * @param seed2          ESPN seed for team 2
+ * @param roundNumber    Tournament round (1 = First Round)
+ * @param oddsImplied    Vig-free implied probability [team1, team2] from market
+ * @param kenPomWinProb  KenPom efficiency-model win probability for team1 (0-1)
  */
 export function predictMatchup(
   seed1: number,
   seed2: number,
   roundNumber: number,
-  oddsImplied?: [number, number] | null
+  oddsImplied?: [number, number] | null,
+  kenPomWinProb?: number | null
 ): Prediction {
   // Calculate seed-based probability
   let seedProb: number;
@@ -45,16 +55,48 @@ export function predictMatchup(
     seedProb = seedBasedWinRate(seed1, seed2);
   }
 
-  // If odds are available, blend
-  if (oddsImplied && oddsImplied[0] > 0 && oddsImplied[1] > 0) {
-    const blended1 = 0.7 * oddsImplied[0] + 0.3 * seedProb;
-    const blended2 = 0.7 * oddsImplied[1] + 0.3 * (1 - seedProb);
-    // Normalize
-    const total = blended1 + blended2;
+  const hasOdds = !!(oddsImplied && oddsImplied[0] > 0 && oddsImplied[1] > 0);
+  const hasKenPom = kenPomWinProb != null && kenPomWinProb > 0 && kenPomWinProb < 1;
+
+  if (hasKenPom && hasOdds) {
+    // Three-way blend: 40% KenPom + 40% odds + 20% seed
+    const raw1 = 0.4 * kenPomWinProb + 0.4 * oddsImplied![0] + 0.2 * seedProb;
+    const raw2 = 0.4 * (1 - kenPomWinProb) + 0.4 * oddsImplied![1] + 0.2 * (1 - seedProb);
+    const total = raw1 + raw2;
+    const t1 = raw1 / total;
+    const edge1 = t1 - oddsImplied![0];
     return {
-      team1WinPct: blended1 / total,
+      team1WinPct: t1,
+      team2WinPct: raw2 / total,
+      source: "kenpom-blended",
+      edge1,
+    };
+  }
+
+  if (hasKenPom) {
+    // KenPom + seed blend: 60% KenPom + 40% seed
+    const raw1 = 0.6 * kenPomWinProb! + 0.4 * seedProb;
+    const raw2 = 0.6 * (1 - kenPomWinProb!) + 0.4 * (1 - seedProb);
+    const total = raw1 + raw2;
+    return {
+      team1WinPct: raw1 / total,
+      team2WinPct: raw2 / total,
+      source: "kenpom-only",
+    };
+  }
+
+  if (hasOdds) {
+    // Odds + seed blend: 70% odds + 30% seed
+    const blended1 = 0.7 * oddsImplied![0] + 0.3 * seedProb;
+    const blended2 = 0.7 * oddsImplied![1] + 0.3 * (1 - seedProb);
+    const total = blended1 + blended2;
+    const t1 = blended1 / total;
+    const edge1 = t1 - oddsImplied![0];
+    return {
+      team1WinPct: t1,
       team2WinPct: blended2 / total,
       source: "blended",
+      edge1,
     };
   }
 

@@ -176,7 +176,15 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{team1.abbreviation}</span>
                 <span className="capitalize text-center text-[11px]">
-                  {prediction.source === "blended" ? "Odds + Seed Model" : prediction.source === "odds-implied" ? "Betting Odds" : "Historical Seed Data"}
+                  {prediction.source === "kenpom-blended"
+                    ? "KenPom + Odds + Seed"
+                    : prediction.source === "kenpom-only"
+                    ? "KenPom + Seed"
+                    : prediction.source === "blended"
+                    ? "Odds + Seed"
+                    : prediction.source === "odds-implied"
+                    ? "Betting Odds"
+                    : "Historical Seed Data"}
                 </span>
                 <span>{team2.abbreviation}</span>
               </div>
@@ -254,8 +262,23 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                     <tr className="border-t border-border/50">
                       <td className="py-1.5 text-muted-foreground">Proj. Total</td>
                       <td className="text-right py-1.5 font-mono">{proj.total.toFixed(1)}</td>
-                      <td className="text-right py-1.5 text-muted-foreground/70"></td>
+                      <td className="text-right py-1.5 text-muted-foreground/70">
+                        {odds?.consensusTotal != null
+                          ? `O/U: ${odds.consensusTotal.toFixed(1)}`
+                          : ""}
+                      </td>
                     </tr>
+                    {odds?.consensusTotal != null && (() => {
+                      const totalDiff = proj.total - odds.consensusTotal!;
+                      return (
+                        <tr className="border-t border-border/50">
+                          <td className="py-1.5 text-muted-foreground">Model vs. O/U</td>
+                          <td className="text-right py-1.5 font-mono text-muted-foreground" colSpan={2}>
+                            {totalDiff >= 0 ? "+" : ""}{totalDiff.toFixed(1)} pts
+                          </td>
+                        </tr>
+                      );
+                    })()}
                     <tr className="border-t border-border/50">
                       <td className="py-1.5 text-muted-foreground">Win Prob (KP)</td>
                       <td className="text-right py-1.5 font-mono">{team1.abbreviation} {Math.round(proj.winProbA * 100)}%</td>
@@ -264,7 +287,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                   </tbody>
                 </table>
                 <p className="text-[10px] text-muted-foreground/60 pt-0.5">
-                  Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line.
+                  Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line. Note: the model tends to project 5–15 pts higher scoring than actual tournament games (efficiency ratings are season averages vs. average opponents; tournament defensive intensity is higher).
                 </p>
               </div>
             </>
@@ -373,7 +396,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                     </div>
                   )}
 
-                  {/* Odds table: moneyline + spread */}
+                  {/* Odds table: moneyline + spread + O/U */}
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="text-muted-foreground/70 border-b text-[10px]">
@@ -382,10 +405,16 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                         <th className="text-right pb-1.5">Spread</th>
                         <th className="text-right pb-1.5 font-semibold text-xs text-foreground">{team2?.abbreviation ?? "Team 2"}</th>
                         <th className="text-right pb-1.5">Spread</th>
+                        <th className="text-right pb-1.5">O/U</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {odds.bookmakers.map((bm) => (
+                      {[...odds.bookmakers].sort((a, b) => {
+                        const order = ["BetMGM", "DraftKings", "FanDuel"];
+                        const ai = order.findIndex(n => a.name.toLowerCase().includes(n.toLowerCase()));
+                        const bi = order.findIndex(n => b.name.toLowerCase().includes(n.toLowerCase()));
+                        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+                      }).map((bm) => (
                         <tr key={bm.name} className="border-t border-border/50 hover:bg-muted/30">
                           <td className="py-2 font-medium">{bm.name}</td>
                           <td className="text-right py-2 font-mono">{formatOdds(bm.moneyline[0])}</td>
@@ -398,6 +427,11 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                           <td className="text-right py-2 font-mono">
                             {bm.spread
                               ? `${bm.spread[1] > 0 ? "+" : ""}${bm.spread[1]} (${formatOdds(bm.spreadJuice?.[1] ?? -110)})`
+                              : "—"}
+                          </td>
+                          <td className="text-right py-2 font-mono">
+                            {bm.total != null
+                              ? `${bm.total.toFixed(1)} (${formatOdds(bm.totalJuice?.[0] ?? -110)})`
                               : "—"}
                           </td>
                         </tr>

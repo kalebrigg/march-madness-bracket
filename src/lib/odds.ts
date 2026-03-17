@@ -13,7 +13,7 @@ export async function fetchOdds(): Promise<OddsAPIResponse[] | null> {
   if (!apiKey) return null;
 
   try {
-    const url = `${ODDS_API_BASE}/odds?regions=us&markets=h2h,spreads&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm&apiKey=${apiKey}`;
+    const url = `${ODDS_API_BASE}/odds?regions=us&markets=h2h,spreads,totals&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm&apiKey=${apiKey}`;
     const res = await fetch(url, { next: { revalidate: 1800 } }); // 30 min cache
     if (!res.ok) {
       console.error(`Odds API error: ${res.status}`);
@@ -82,10 +82,27 @@ export function parseOdds(oddsData: OddsAPIResponse[]): Map<string, GameOdds> {
         }
       }
 
+      // Parse totals (O/U) market if available
+      const totalsMarket = bm.markets.find((m) => m.key === "totals");
+      let total: number | undefined;
+      let totalJuice: [number, number] | undefined;
+      if (totalsMarket && totalsMarket.outcomes.length >= 2) {
+        const overOutcome = totalsMarket.outcomes.find((o) => o.name === "Over");
+        const underOutcome = totalsMarket.outcomes.find((o) => o.name === "Under");
+        if (overOutcome?.point !== undefined) {
+          total = overOutcome.point;
+          totalJuice = [
+            overOutcome.price,
+            underOutcome?.price ?? -110,
+          ];
+        }
+      }
+
       bookmakers.push({
         name: bm.title,
         moneyline: [homeMoneyline, awayMoneyline],
         ...(spread && { spread, spreadJuice }),
+        ...(total !== undefined && { total, totalJuice }),
       });
     }
 
@@ -103,6 +120,13 @@ export function parseOdds(oddsData: OddsAPIResponse[]): Map<string, GameOdds> {
       impliedProbability = removeVig(avg1, avg2);
     }
 
+    // Consensus O/U total (average across bookmakers that have it)
+    const totalsWithLine = bookmakers.filter((bm) => bm.total !== undefined);
+    const consensusTotal =
+      totalsWithLine.length > 0
+        ? totalsWithLine.reduce((sum, bm) => sum + bm.total!, 0) / totalsWithLine.length
+        : null;
+
     // Use normalized team names as key for matching
     const key = makeMatchKey(game.home_team, game.away_team);
 
@@ -112,6 +136,7 @@ export function parseOdds(oddsData: OddsAPIResponse[]): Map<string, GameOdds> {
       awayTeam: game.away_team,
       bookmakers,
       impliedProbability,
+      consensusTotal,
     });
   }
 
