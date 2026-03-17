@@ -31,6 +31,9 @@ async function getTournamentData() {
     const team1 = matchup.teams[0];
     const team2 = matchup.teams[1];
     if (!team1 || !team2) continue;
+    // Skip predictions for TBD opponents (ESPN uses seed 99 for unannounced teams)
+    // The logistic model would produce a ~100% win probability which is meaningless
+    if (team1.seed === 99 || team2.seed === 99) continue;
 
     // Try to find odds for this matchup
     const matchKey = makeMatchKey(team1.name, team2.name);
