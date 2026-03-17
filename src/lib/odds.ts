@@ -30,13 +30,16 @@ export async function fetchOdds(): Promise<OddsAPIResponse[] | null> {
  * Normalize a team name for matching between ESPN and Odds API.
  */
 function normalizeTeamName(name: string): string {
-  // Check alias map first
+  // Check alias map first (handles full-name → ESPN-name mappings)
   if (TEAM_NAME_ALIASES[name]) return TEAM_NAME_ALIASES[name];
 
-  // Strip common suffixes like "Wildcats", "Bulldogs", etc.
-  // Just use the school name
+  // Strip mascot suffixes (multi-word first, then single-word).
+  // This is a broad fallback so any team not in the alias map still normalizes.
   return name
-    .replace(/\s+(Wildcats|Bulldogs|Tigers|Bears|Eagles|Hawks|Huskies|Mountaineers|Wolverines|Spartans|Buckeyes|Jayhawks|Tar Heels|Blue Devils|Crimson Tide|Volunteers|Panthers|Cardinals|Seminoles|Hurricanes|Cavaliers|Hokies|Terrapins|Golden Gophers|Badgers|Hawkeyes|Boilermakers|Fighting Irish|Orange|Red Raiders|Longhorns|Aggies|Cowboys|Sooners|Razorbacks|Rebels|Commodores|Gamecocks|Bruins|Trojans|Beavers|Ducks|Sun Devils|Buffaloes|Utes|Cougars|Hoosiers|Illini|Cornhuskers|Cyclones|Mustangs|Friars|Gaels|Zags|Gonzaga Bulldogs)$/i, "")
+    // Multi-word mascots (must come before single-word pass)
+    .replace(/\s+(Rainbow Warriors|Horned Frogs|Red Storm|Fighting Illini|Blue Devils|Tar Heels|Crimson Tide|Golden Gophers|Golden Eagles|Golden Bears|Golden Flashes|Golden Hurricane|Red Raiders|Fighting Irish|Sun Devils|Demon Deacons|Wolf Pack|Blue Hens|Mean Green|Red Flash|Flying Dutchmen|Mountain Hawks|Blue Raiders|Green Wave|Purple Aces|Silver Hawks|Runnin Rebels|Running Rebels|Blazing Trails)$/i, "")
+    // Single-word mascots
+    .replace(/\s+(Wildcats|Bulldogs|Tigers|Bears|Eagles|Hawks|Huskies|Mountaineers|Wolverines|Spartans|Buckeyes|Jayhawks|Badgers|Hawkeyes|Boilermakers|Orange|Longhorns|Aggies|Cowboys|Sooners|Razorbacks|Rebels|Commodores|Gamecocks|Bruins|Trojans|Beavers|Ducks|Buffaloes|Utes|Cougars|Hoosiers|Illini|Cornhuskers|Cyclones|Mustangs|Friars|Gaels|Zags|Seminoles|Hurricanes|Cavaliers|Hokies|Terrapins|Volunteers|Panthers|Cardinals|Rams|Wolfpack|Bison|Pride|Sharks|Vandals|Broncos|Raiders|Lancers|Billikens|Owls|Paladins|Jaguars|Knights|Royals|Zips|Quakers|Saints|Flyers|Fliers|Bearcats|Musketeers|Ramblers|Miners|Penguins|Flames|Blazers|Racers|Shockers|Falcons|Lobos|Retrievers|Terriers|Pioneers|Matadors|Roadrunners|Lumberjacks|Bearkats|Warhawks|Vikings|Waves|Anteaters|Hatters|Rattlers|Peacocks|Buccaneers|Pirates|Chanticleers|Gorillas|Dolphins|Ospreys|Seawolves|Grizzlies|Highlanders|Engineers|Explorers|Firebirds|Seahawks|Mavericks|Roadrunners|Redhawks|Phoenix|Pilots|Toreros|Coyotes|Hilltoppers|Sycamores|Thunderbirds|Colonials|Spiders|Leopards|Bonnies|Crusaders|Midshipmen|Cardinal|Lopes|Racers|Monarchs|Minutemen|Dukes|Penguins|Vols|Tribe|Eagles|Braves|Bears|Flames|Gauchos|Banana Slugs|Normans|Zips|Scarlet|Matadors|Warriors|Tommies|Billikens|Retrievers|Salukis|Gators|Utes)$/i, "")
     .trim();
 }
 
