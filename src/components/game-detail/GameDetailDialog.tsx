@@ -105,8 +105,6 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           </div>
         </div>
 
-        <Separator />
-
         {/* ── Game Info ─────────────────────────────────────────── */}
         <CollapsibleSection title="Game Info" defaultOpen={true}>
           <div className="space-y-2 text-sm">
