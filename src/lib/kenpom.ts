@@ -46,8 +46,43 @@ export function parseKenPomCSV(csvText: string): TeamKenPom {
 }
 
 /**
+ * Common college basketball mascot names to strip for matching
+ */
+const MASCOT_NAMES = [
+  "Wildcats", "Wolverines", "Red Raiders", "Longhorns", "Aggies", "Cowboys",
+  "Sooners", "Razorbacks", "Rebels", "Commodores", "Gamecocks", "Bruins",
+  "Trojans", "Beavers", "Ducks", "Sun Devils", "Buffaloes", "Utes", "Cougars",
+  "Hoosiers", "Illini", "Cornhuskers", "Cyclones", "Mustangs", "Friars",
+  "Gaels", "Zags", "Gonzaga", "Tigers", "Bears", "Eagles", "Hawks", "Huskies",
+  "Mountaineers", "Spartans", "Buckeyes", "Jayhawks", "Tar Heels", "Blue Devils",
+  "Crimson Tide", "Volunteers", "Panthers", "Cardinals", "Seminoles", "Hurricanes",
+  "Cavaliers", "Hokies", "Terrapins", "Golden Gophers", "Badgers", "Hawkeyes",
+  "Boilermakers", "Fighting Irish", "Orange", "Bulldogs", "Golden Eagles", "Patriots",
+];
+
+/**
+ * Strip mascot name from team name to get school name
+ * e.g., "Arizona Wildcats" → "Arizona", "Texas Tech Red Raiders" → "Texas Tech"
+ */
+function stripMascot(teamName: string): string {
+  let cleanName = teamName.trim();
+
+  // Remove numbered suffixes (e.g., "Duke 1" → "Duke")
+  cleanName = cleanName.replace(/\s+\d+$/, "").trim();
+
+  // Remove mascot names
+  for (const mascot of MASCOT_NAMES) {
+    const pattern = new RegExp(`\\s+${mascot}\\s*$`, "i");
+    cleanName = cleanName.replace(pattern, "").trim();
+  }
+
+  return cleanName;
+}
+
+/**
  * Get KenPom rating for a specific team by name.
  * Searches the team name in the KenPom data with flexible matching.
+ * Handles mascot names (e.g., "Arizona Wildcats" → matches "Arizona")
  */
 export function getTeamKenPom(
   teamName: string,
@@ -55,29 +90,37 @@ export function getTeamKenPom(
 ): KenPomRating | null {
   if (!kenPomData) return null;
 
+  const lowerTeamName = teamName.toLowerCase();
+
   // Try exact match first
   if (kenPomData[teamName]) {
     return kenPomData[teamName];
   }
 
   // Try case-insensitive match
-  const lowerTeamName = teamName.toLowerCase();
   for (const [key, value] of Object.entries(kenPomData)) {
     if (key.toLowerCase() === lowerTeamName) {
       return value;
     }
   }
 
-  // Try partial match (search for team name in key or vice versa)
+  // Strip mascot and try again
+  const cleanedName = stripMascot(teamName);
+  const cleanedLower = cleanedName.toLowerCase();
+
+  for (const [key, value] of Object.entries(kenPomData)) {
+    if (key.toLowerCase() === cleanedLower) {
+      return value;
+    }
+  }
+
+  // Try partial match as fallback
   for (const [key, value] of Object.entries(kenPomData)) {
     const lowerKey = key.toLowerCase();
-    // Remove common suffixes for comparison
-    const cleanKey = lowerKey.replace(/\s+(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16)$/, "");
-    const cleanTeam = lowerTeamName.replace(/\s+\d+$/, "");
 
     if (
-      cleanKey.includes(cleanTeam) ||
-      cleanTeam.includes(cleanKey) ||
+      lowerKey.includes(cleanedLower) ||
+      cleanedLower.includes(lowerKey) ||
       lowerKey.includes(lowerTeamName) ||
       lowerTeamName.includes(lowerKey)
     ) {
