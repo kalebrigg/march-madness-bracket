@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MobileNav } from "@/components/layout/MobileNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -52,7 +53,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider>
+            <div className="pb-16 sm:pb-0">{children}</div>
+            <MobileNav />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
