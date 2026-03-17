@@ -107,7 +107,9 @@ export async function getTournamentData(): Promise<TournamentDataResult> {
       team2.seed,
       matchup.roundNumber,
       impliedProb,
-      kenPomWinProb
+      kenPomWinProb,
+      kp1?.luck ?? null,
+      kp2?.luck ?? null,
     );
   }
 
