@@ -38,11 +38,35 @@ async function getTournamentData() {
     // Try to find odds for this matchup
     const matchKey = makeMatchKey(team1.name, team2.name);
     const gameOdds = oddsMap.get(matchKey);
+    let alignedOdds: GameOdds | undefined;
+
     if (gameOdds) {
-      odds[matchup.gameId] = gameOdds;
+      // Odds API stores moneyline[0] = home team, moneyline[1] = away team.
+      // makeMatchKey sorts alphabetically so the lookup works regardless of order,
+      // but we must re-align so moneyline[0] matches ESPN's team1 and [1] matches team2.
+      const oddsHome = gameOdds.homeTeam.toLowerCase();
+      const espnTeam1 = team1.name.toLowerCase();
+      // Team1 is the Odds API home team if its name is contained in (or contains) the odds home name
+      const team1IsHome =
+        oddsHome.includes(espnTeam1) || espnTeam1.includes(oddsHome);
+
+      alignedOdds = team1IsHome
+        ? gameOdds
+        : {
+            ...gameOdds,
+            bookmakers: gameOdds.bookmakers.map((bm) => ({
+              ...bm,
+              moneyline: [bm.moneyline[1], bm.moneyline[0]] as [number, number],
+            })),
+            impliedProbability: gameOdds.impliedProbability
+              ? [gameOdds.impliedProbability[1], gameOdds.impliedProbability[0]]
+              : null,
+          };
+
+      odds[matchup.gameId] = alignedOdds;
     }
 
-    const impliedProb = gameOdds?.impliedProbability ?? null;
+    const impliedProb = alignedOdds?.impliedProbability ?? null;
     predictions[matchup.gameId] = predictMatchup(
       team1.seed,
       team2.seed,
