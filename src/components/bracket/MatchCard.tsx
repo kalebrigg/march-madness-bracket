@@ -147,7 +147,7 @@ export function MatchCard({
         !isPlaceholder && "hover:shadow-md hover:border-primary/50 cursor-pointer",
         isPlaceholder && "opacity-60 cursor-default",
         status === "in" && "border-red-500 ring-1 ring-red-500/30",
-        isPredictedUpset && "bg-red-500/[0.04] border-red-400/40",
+        isPredictedUpset && "bg-red-500/10 border-red-500/60 ring-1 ring-red-500/20",
         isTossup && "bg-amber-500/[0.04] border-amber-400/40"
       )}
     >
