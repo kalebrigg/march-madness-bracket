@@ -17,7 +17,7 @@ export default async function PreviewPage() {
 
       {/* Preview banner */}
       <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-3 no-print">
-        <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row sm:items-center gap-2">
+        <div className="max-w-[1920px] mx-auto flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-base">🧪</span>
             <span className="font-semibold text-amber-700 dark:text-amber-400 text-sm">
@@ -45,7 +45,32 @@ export default async function PreviewPage() {
         </div>
       </div>
 
-      <main className="max-w-[1600px] mx-auto px-4 py-4">
+      <main className="max-w-[1920px] mx-auto px-2 py-4 lg:px-3">
+        <div className="text-center mb-4 no-print">
+          <p className="text-sm text-muted-foreground">
+            Click any matchup for full details including venue, TV channel, odds, KenPom ratings, and win probability.
+          </p>
+          {/* Bracket legend */}
+          <div className="flex items-center justify-center gap-4 px-1 pb-3 text-[11px] text-muted-foreground flex-wrap">
+            <span className="font-semibold text-foreground/40 uppercase tracking-wider text-[10px]">Key</span>
+            <span className="flex items-center gap-1.5">
+              <span>⚡</span>
+              <span>Model predicts upset</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span>⚖️</span>
+              <span>Toss-up — too close to call</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
+              <span>Live</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-green-600 font-semibold text-xs">68%</span>
+              <span>Model edge over market</span>
+            </span>
+          </div>
+        </div>
         <Bracket
           tournament={patched}
           predictions={predictions}
