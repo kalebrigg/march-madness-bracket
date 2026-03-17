@@ -70,17 +70,17 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
   return (
     <Dialog open={!!matchup} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Expand / Collapse All — sits inline with the dialog's own X close button */}
+        {/* Expand / Collapse All — matches top-4 + h-4 of the shadcn X close button */}
         <button
           type="button"
-          onClick={() => setExpandAll((v) => (v === true ? false : true))}
-          className="absolute right-10 top-[13px] flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors z-10"
+          onClick={() => setExpandAll((v) => (v === false ? true : false))}
+          className="absolute right-10 top-4 h-4 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors z-10"
         >
-          {expandAll === true
-            ? <ChevronsDownUp className="h-3.5 w-3.5" />
-            : <ChevronsUpDown className="h-3.5 w-3.5" />
+          {expandAll === false
+            ? <ChevronsUpDown className="h-3.5 w-3.5" />
+            : <ChevronsDownUp className="h-3.5 w-3.5" />
           }
-          <span>{expandAll === true ? "Collapse All" : "Expand All"}</span>
+          <span>{expandAll === false ? "Expand All" : "Collapse All"}</span>
         </button>
 
         <DialogHeader>
