@@ -101,7 +101,15 @@ export async function getTournamentData(): Promise<TournamentDataResult> {
       kenPomWinProb = proj.winProbA;
     }
 
-    const impliedProb = alignedOdds?.impliedProbability ?? null;
+    // Only use market odds for pre-game predictions. Live odds reflect the
+    // current score and time remaining — not pre-game team quality — so passing
+    // them to the model would corrupt the blend mid-game and make predictions
+    // change on every refresh. For live/final games we fall back to KP + seed.
+    const impliedProb =
+      matchup.status === "pre"
+        ? (alignedOdds?.impliedProbability ?? null)
+        : null;
+
     predictions[matchup.gameId] = predictMatchup(
       team1.seed,
       team2.seed,
