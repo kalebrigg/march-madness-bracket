@@ -81,7 +81,7 @@ export default function OGImage() {
                 background: "#ea580c",
                 borderRadius: "8px",
                 padding: "6px 18px",
-                fontSize: "18px",
+                fontSize: "25px",
                 fontWeight: "800",
                 color: "white",
                 letterSpacing: "0.1em",
@@ -92,7 +92,7 @@ export default function OGImage() {
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: "25px",
                 fontWeight: "700",
                 color: "rgba(255,255,255,0.35)",
                 letterSpacing: "0.08em",
@@ -154,7 +154,7 @@ export default function OGImage() {
                 <span style={{ fontSize: "28px" }}>{item.icon}</span>
                 <span
                   style={{
-                    fontSize: "22px",
+                    fontSize: "25px",
                     fontWeight: "700",
                     color: "rgba(255,255,255,0.85)",
                   }}
@@ -217,12 +217,12 @@ export default function OGImage() {
               />
               <span
                 style={{
-                  fontSize: "18px",
+                  fontSize: "25px",
                   color: "rgba(255,255,255,0.4)",
                   fontFamily: "monospace",
                 }}
               >
-                march-madness-bracket-nine.vercel.app
+                mm26-bracketedge.vercel.app
               </span>
             </div>
           </div>
