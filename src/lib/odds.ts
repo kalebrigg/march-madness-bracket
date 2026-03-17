@@ -53,13 +53,23 @@ export function parseOdds(oddsData: OddsAPIResponse[]): Map<string, GameOdds> {
       const h2h = bm.markets.find((m) => m.key === "h2h");
       if (!h2h || h2h.outcomes.length < 2) continue;
 
-      // Outcomes are indexed by team name
-      const team1Odds = h2h.outcomes[0]?.price ?? 0;
-      const team2Odds = h2h.outcomes[1]?.price ?? 0;
+      // Explicitly match outcomes to home/away team by name.
+      // Do NOT rely on array index — outcome order is not consistent across bookmakers.
+      const findPrice = (teamName: string): number => {
+        const norm = normalizeTeamName(teamName).toLowerCase();
+        const outcome = h2h.outcomes.find((o) => {
+          const n = normalizeTeamName(o.name).toLowerCase();
+          return n === norm || n.includes(norm) || norm.includes(n);
+        });
+        return outcome?.price ?? 0;
+      };
+
+      const homeOdds = findPrice(game.home_team);
+      const awayOdds = findPrice(game.away_team);
 
       bookmakers.push({
         name: bm.title,
-        moneyline: [team1Odds, team2Odds],
+        moneyline: [homeOdds, awayOdds],
       });
     }
 
