@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { runMonteCarlo, type MonteCarloResult } from "@/lib/monte-carlo";
+import { MarginDistributionChart } from "./MarginDistributionChart";
 
 interface MonteCarloSectionProps {
   projSpread: number;       // KenPom projected margin (positive = team1 favored)
@@ -115,9 +116,6 @@ export function MonteCarloSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Monte Carlo Simulation
-        </div>
         {!isPreGame && (
           <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
             Pre-game estimate
@@ -214,10 +212,20 @@ export function MonteCarloSection({
             </div>
           )}
 
+          {/* Margin distribution chart */}
+          <div className="border-t border-border/50 pt-3 pb-1">
+            <MarginDistributionChart
+              bins={result.marginBins}
+              bookSpread={bookSpread}
+              team1Abbr={team1Abbr}
+              team2Abbr={team2Abbr}
+            />
+          </div>
+
           {/* Simulation metadata */}
           <div className="pt-1 flex items-center justify-between">
             <p className="text-[10px] text-muted-foreground/60">
-              {result.n.toLocaleString()} simulations · margin σ {result.marginStdDev.toFixed(1)} · total σ {result.totalStdDev.toFixed(1)}
+              {result.n.toLocaleString()} sims · σ {result.marginStdDev.toFixed(1)} pts
             </p>
             <button
               onClick={run}

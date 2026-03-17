@@ -9,8 +9,14 @@
  * that drives total variance is largely orthogonal to which team wins.
  *
  * Output metrics that are NOT derivable from the deterministic model:
- *   - coverPctA: probability team1 covers the book spread (ATS)
- *   - overPct:   probability the game total exceeds the O/U line
+ *   - coverPctA:   probability team1 covers the book spread (ATS)
+ *   - overPct:     probability the game total exceeds the O/U line
+ *   - marginBins:  30-bin histogram of margin outcomes for distribution chart
+ *
+ * Histogram bins: 30 buckets of 4 pts each, covering margins from -60 to +60.
+ *   bin k = margins in [-60 + 4k,  -60 + 4(k+1))
+ *   Zero line sits between bin 14 and bin 15 (exactly at 50% of chart width).
+ *   Spread line position = (-bookSpread + 60) / 120.
  */
 
 /** Box-Muller transform — returns a single standard-normal sample */
@@ -24,6 +30,12 @@ function sampleStdNormal(): number {
 // Historical college basketball standard deviations
 const MARGIN_STD = 11; // matches the winProbA formula in kenpom-model.ts
 const TOTAL_STD  = 18; // empirical total variance in NCAA tournament games
+
+// Histogram constants
+export const HIST_BINS      = 30;   // number of buckets
+export const HIST_BIN_WIDTH =  4;   // pts per bucket
+export const HIST_MIN       = -60;  // left edge of bin 0
+export const HIST_MAX       =  60;  // right edge of bin 29
 
 export interface MonteCarloResult {
   n: number;
@@ -47,6 +59,9 @@ export interface MonteCarloResult {
   avgTotal: number;
   marginStdDev: number;
   totalStdDev: number;
+
+  // Margin histogram — 30 bins, bin k = [-60+4k, -60+4(k+1)), raw counts
+  marginBins: number[];
 }
 
 /**
@@ -71,6 +86,9 @@ export function runMonteCarlo(
   let marginMean = 0, marginM2 = 0;
   let totalMean  = 0, totalM2  = 0;
 
+  // Margin histogram — 30 bins × 4 pts, -60 to +60
+  const marginBins = new Array<number>(HIST_BINS).fill(0);
+
   for (let i = 0; i < n; i++) {
     const margin = projSpread + sampleStdNormal() * MARGIN_STD;
     const total  = projTotal  + sampleStdNormal() * TOTAL_STD;
@@ -92,6 +110,13 @@ export function runMonteCarlo(
     const td = total - totalMean;
     totalMean += td / i1;
     totalM2   += td * (total - totalMean);
+
+    // Bin the margin: clamp to [HIST_MIN, HIST_MAX)
+    const binIdx = Math.min(
+      HIST_BINS - 1,
+      Math.max(0, Math.floor((margin - HIST_MIN) / HIST_BIN_WIDTH))
+    );
+    marginBins[binIdx]++;
   }
 
   return {
@@ -108,5 +133,6 @@ export function runMonteCarlo(
     avgTotal:  totalMean,
     marginStdDev: Math.sqrt(marginM2 / n),
     totalStdDev:  Math.sqrt(totalM2  / n),
+    marginBins,
   };
 }
