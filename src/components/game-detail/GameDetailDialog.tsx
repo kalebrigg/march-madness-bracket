@@ -70,23 +70,23 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
   return (
     <Dialog open={!!matchup} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        {/* Expand / Collapse All — sits inline with the dialog's own X close button */}
+        <button
+          type="button"
+          onClick={() => setExpandAll((v) => (v === true ? false : true))}
+          className="absolute right-10 top-[13px] flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors z-10"
+        >
+          {expandAll === true
+            ? <ChevronsDownUp className="h-3.5 w-3.5" />
+            : <ChevronsUpDown className="h-3.5 w-3.5" />
+          }
+          <span>{expandAll === true ? "Collapse All" : "Expand All"}</span>
+        </button>
+
         <DialogHeader>
-          <div className="flex items-center justify-between gap-2">
-            <DialogTitle className="flex-1 text-center">
-              {team1?.name ?? "TBD"} vs {team2?.name ?? "TBD"}
-            </DialogTitle>
-            <button
-              type="button"
-              title={expandAll === true ? "Collapse all sections" : "Expand all sections"}
-              onClick={() => setExpandAll((v) => (v === true ? false : true))}
-              className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-            >
-              {expandAll === true
-                ? <ChevronsDownUp className="h-4 w-4" />
-                : <ChevronsUpDown className="h-4 w-4" />
-              }
-            </button>
-          </div>
+          <DialogTitle className="text-center">
+            {team1?.name ?? "TBD"} vs {team2?.name ?? "TBD"}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Teams header — always visible */}
