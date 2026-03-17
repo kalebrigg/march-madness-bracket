@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 /**
- * Invalidates the Next.js data cache for the bracket and bets pages,
- * forcing a fresh fetch from ESPN + The Odds API on the next render.
+ * Bust the Next.js route cache for the bracket and bets pages.
+ * ESPN data uses cache: 'no-store' so it's always fresh.
+ * This primarily forces a re-render and clears the 30-min Odds cache age.
  */
 export async function revalidateTournamentData() {
-  revalidatePath("/");
-  revalidatePath("/bets");
+  revalidatePath("/", "page");
+  revalidatePath("/bets", "page");
 }

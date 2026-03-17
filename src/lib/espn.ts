@@ -24,7 +24,7 @@ export async function fetchTournamentData(): Promise<ESPNEvent[]> {
   const responses = await Promise.allSettled(
     TOURNAMENT_DATES_2026.map(async (date) => {
       const url = `${ESPN_BASE}/scoreboard?groups=50&limit=100&dates=${date}`;
-      const res = await fetch(url, { next: { revalidate: 120 } });
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) return null;
       return res.json() as Promise<ESPNScoreboardResponse>;
     })
