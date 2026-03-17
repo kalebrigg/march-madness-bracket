@@ -28,7 +28,8 @@ export function Bracket({ tournament, predictions, odds }: BracketProps) {
   return (
     <>
       {/* Desktop: Full horizontal bracket */}
-      <div className="hidden lg:flex items-stretch gap-2 overflow-x-auto pb-4">
+      <div className="hidden lg:flex items-stretch gap-8 overflow-x-auto pb-4 bracket-print-container">
+        {/* Left side regions */}
         <div className="flex flex-col gap-6">
           {leftRegions.map((region) => (
             <Region
@@ -40,6 +41,7 @@ export function Bracket({ tournament, predictions, odds }: BracketProps) {
           ))}
         </div>
 
+        {/* Final Four center */}
         <FinalFour
           finalFourGames={tournament.finalFour}
           championship={tournament.championship}
@@ -47,6 +49,7 @@ export function Bracket({ tournament, predictions, odds }: BracketProps) {
           onMatchClick={handleMatchClick}
         />
 
+        {/* Right side regions (reversed) */}
         <div className="flex flex-col gap-6">
           {rightRegions.map((region) => (
             <Region

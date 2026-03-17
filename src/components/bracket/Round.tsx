@@ -17,20 +17,18 @@ export function Round({
   predictions,
   roundName,
   onMatchClick,
-  compact,
 }: RoundProps) {
   return (
-    <div className="flex flex-col justify-around gap-2 min-w-[160px]">
+    <div className="flex flex-col justify-around min-w-[150px]">
       <div className="text-[10px] text-center text-muted-foreground font-semibold uppercase tracking-wider mb-1">
         {roundName}
       </div>
       {matchups.map((matchup) => (
-        <div key={matchup.gameId} className="flex items-center">
+        <div key={matchup.gameId} className="flex-1 flex items-center py-0.5">
           <MatchCard
             matchup={matchup}
             prediction={predictions[matchup.gameId] ?? null}
             onClick={() => onMatchClick?.(matchup)}
-            compact={compact}
           />
         </div>
       ))}

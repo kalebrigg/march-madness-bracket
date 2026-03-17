@@ -55,9 +55,9 @@ export default async function Home() {
       <Header />
 
       <main className="max-w-[1600px] mx-auto px-4 py-4">
-        <AdSlot adSlot="top-banner" adFormat="horizontal" className="mb-4" />
+        {/* <AdSlot adSlot="top-banner" adFormat="horizontal" className="mb-4" /> */}
 
-        <div className="text-center mb-4">
+        <div className="text-center mb-4 no-print">
           <p className="text-sm text-muted-foreground">
             Click any matchup for full details including venue, TV channel, odds, and win probability.
           </p>
@@ -69,7 +69,7 @@ export default async function Home() {
           odds={odds}
         />
 
-        <AdSlot adSlot="bottom-banner" adFormat="horizontal" className="mt-4" />
+        {/* <AdSlot adSlot="bottom-banner" adFormat="horizontal" className="mt-4" /> */}
       </main>
 
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">

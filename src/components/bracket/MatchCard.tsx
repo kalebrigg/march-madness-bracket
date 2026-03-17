@@ -12,7 +12,63 @@ interface MatchCardProps {
   compact?: boolean;
 }
 
-export function MatchCard({ matchup, prediction, onClick, compact }: MatchCardProps) {
+function TeamRow({
+  team,
+  isWinner,
+  score,
+  showScore,
+}: {
+  team: { name: string; seed: number; logo: string } | null;
+  isWinner: boolean;
+  score?: number;
+  showScore: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 px-2 py-1",
+        isWinner && "font-bold"
+      )}
+    >
+      {team ? (
+        <>
+          {team.logo ? (
+            <img
+              src={team.logo}
+              alt=""
+              className="w-5 h-5 object-contain shrink-0"
+            />
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
+          )}
+          <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
+            {team.seed}
+          </span>
+          <span className="truncate flex-1 text-sm">{team.name}</span>
+          {showScore && score !== undefined && (
+            <span className="font-mono tabular-nums font-semibold text-sm">
+              {score}
+            </span>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
+          <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
+            0
+          </span>
+          <span className="text-muted-foreground text-sm">TBD</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function MatchCard({
+  matchup,
+  prediction,
+  onClick,
+}: MatchCardProps) {
   const { teams, status, score, winner, startTime, broadcast } = matchup;
   const team1 = teams[0];
   const team2 = teams[1];
@@ -23,78 +79,42 @@ export function MatchCard({ matchup, prediction, onClick, compact }: MatchCardPr
       onClick={onClick}
       disabled={isPlaceholder}
       className={cn(
-        "w-full text-left rounded-lg border bg-card text-card-foreground transition-all",
-        compact ? "text-xs p-1.5" : "text-sm p-2",
+        "w-full text-left rounded border bg-card text-card-foreground text-xs transition-all",
         !isPlaceholder && "hover:shadow-md hover:border-primary/50 cursor-pointer",
-        isPlaceholder && "opacity-50 cursor-default",
+        isPlaceholder && "opacity-60 cursor-default",
         status === "in" && "border-red-500 ring-1 ring-red-500/30"
       )}
     >
       {/* Team 1 */}
-      <div className={cn(
-        "flex items-center gap-1.5",
-        compact ? "mb-0.5" : "mb-1",
-        status === "post" && winner === 0 && "font-bold"
-      )}>
-        {team1 ? (
-          <>
-            <span
-              className="inline-block w-1 h-4 rounded-full shrink-0"
-              style={{ backgroundColor: team1.color }}
-            />
-            {!compact && team1.logo && (
-              <img src={team1.logo} alt="" className="w-4 h-4 object-contain" />
-            )}
-            <span className="text-muted-foreground font-mono text-[10px] w-4 text-right shrink-0">
-              {team1.seed}
-            </span>
-            <span className="truncate flex-1">{compact ? team1.abbreviation : team1.name}</span>
-            {status !== "pre" && score && (
-              <span className="font-mono tabular-nums font-semibold">{score[0]}</span>
-            )}
-          </>
-        ) : (
-          <span className="text-muted-foreground italic">TBD</span>
-        )}
-      </div>
+      <TeamRow
+        team={team1}
+        isWinner={status === "post" && winner === 0}
+        score={score?.[0]}
+        showScore={status !== "pre"}
+      />
+
+      {/* Divider */}
+      <div className="border-t border-border" />
 
       {/* Team 2 */}
-      <div className={cn(
-        "flex items-center gap-1.5",
-        status === "post" && winner === 1 && "font-bold"
-      )}>
-        {team2 ? (
-          <>
-            <span
-              className="inline-block w-1 h-4 rounded-full shrink-0"
-              style={{ backgroundColor: team2.color }}
-            />
-            {!compact && team2.logo && (
-              <img src={team2.logo} alt="" className="w-4 h-4 object-contain" />
-            )}
-            <span className="text-muted-foreground font-mono text-[10px] w-4 text-right shrink-0">
-              {team2.seed}
-            </span>
-            <span className="truncate flex-1">{compact ? team2.abbreviation : team2.name}</span>
-            {status !== "pre" && score && (
-              <span className="font-mono tabular-nums font-semibold">{score[1]}</span>
-            )}
-          </>
-        ) : (
-          <span className="text-muted-foreground italic">TBD</span>
-        )}
-      </div>
+      <TeamRow
+        team={team2}
+        isWinner={status === "post" && winner === 1}
+        score={score?.[1]}
+        showScore={status !== "pre"}
+      />
 
       {/* Footer info */}
       {!isPlaceholder && (
-        <div className={cn(
-          "flex items-center justify-between gap-1 border-t pt-1 text-muted-foreground",
-          compact ? "mt-0.5 text-[9px]" : "mt-1.5 text-[10px]"
-        )}>
+        <div className="flex items-center justify-between gap-1 border-t pt-0.5 pb-0.5 px-1.5 text-muted-foreground text-[9px]">
           {status === "pre" && startTime ? (
             <>
               <span>{format(new Date(startTime), "M/d h:mm a")}</span>
-              {broadcast && <span className="font-semibold text-foreground">{broadcast}</span>}
+              {broadcast && (
+                <span className="font-semibold text-foreground">
+                  {broadcast}
+                </span>
+              )}
             </>
           ) : status === "in" ? (
             <>
@@ -102,7 +122,11 @@ export function MatchCard({ matchup, prediction, onClick, compact }: MatchCardPr
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                 LIVE
               </span>
-              {broadcast && <span className="font-semibold text-foreground">{broadcast}</span>}
+              {broadcast && (
+                <span className="font-semibold text-foreground">
+                  {broadcast}
+                </span>
+              )}
             </>
           ) : status === "post" ? (
             <span>FINAL</span>
@@ -111,8 +135,9 @@ export function MatchCard({ matchup, prediction, onClick, compact }: MatchCardPr
           )}
 
           {prediction && status === "pre" && team1 && team2 && (
-            <span className="text-[9px]">
-              {formatProbability(prediction.team1WinPct)} / {formatProbability(prediction.team2WinPct)}
+            <span>
+              {formatProbability(prediction.team1WinPct)} /{" "}
+              {formatProbability(prediction.team2WinPct)}
             </span>
           )}
         </div>

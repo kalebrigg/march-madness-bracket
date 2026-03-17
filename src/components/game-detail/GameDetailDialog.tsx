@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Matchup, Prediction, GameOdds } from "@/lib/types";
-import { formatProbability, formatOdds } from "@/lib/odds-utils";
+import { formatProbability, formatOdds, consensusImpliedProbability, americanToImplied } from "@/lib/odds-utils";
 
 interface GameDetailDialogProps {
   matchup: Matchup | null;
@@ -26,9 +26,12 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
   const team1 = teams[0];
   const team2 = teams[1];
 
+  // Calculate implied probabilities from odds
+  const impliedProbs = odds ? consensusImpliedProbability(odds.bookmakers) : null;
+
   return (
     <Dialog open={!!matchup} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center">
             {team1?.name ?? "TBD"} vs {team2?.name ?? "TBD"}
@@ -40,36 +43,36 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
           {/* Team 1 */}
           <div className="flex-1 text-center">
             {team1?.logo && (
-              <img src={team1.logo} alt={team1.name} className="w-12 h-12 mx-auto mb-1 object-contain" />
+              <img src={team1.logo} alt={team1.name} className="w-16 h-16 mx-auto mb-2 object-contain" />
             )}
-            <div className="font-bold text-sm">{team1?.name ?? "TBD"}</div>
+            <div className="font-bold text-base">{team1?.name ?? "TBD"}</div>
             {team1 && (
               <div className="text-xs text-muted-foreground">
-                #{team1.seed} seed &middot; {team1.record}
+                #{team1.seed} seed {team1.record && `• ${team1.record}`}
               </div>
             )}
             {status !== "pre" && score && (
-              <div className={`text-2xl font-bold mt-1 ${winner === 0 ? "text-green-600" : ""}`}>
+              <div className={`text-3xl font-bold mt-2 ${winner === 0 ? "text-green-600" : ""}`}>
                 {score[0]}
               </div>
             )}
           </div>
 
-          <div className="text-muted-foreground font-bold text-lg">VS</div>
+          <div className="text-muted-foreground font-bold text-xl">VS</div>
 
           {/* Team 2 */}
           <div className="flex-1 text-center">
             {team2?.logo && (
-              <img src={team2.logo} alt={team2.name} className="w-12 h-12 mx-auto mb-1 object-contain" />
+              <img src={team2.logo} alt={team2.name} className="w-16 h-16 mx-auto mb-2 object-contain" />
             )}
-            <div className="font-bold text-sm">{team2?.name ?? "TBD"}</div>
+            <div className="font-bold text-base">{team2?.name ?? "TBD"}</div>
             {team2 && (
               <div className="text-xs text-muted-foreground">
-                #{team2.seed} seed &middot; {team2.record}
+                #{team2.seed} seed {team2.record && `• ${team2.record}`}
               </div>
             )}
             {status !== "pre" && score && (
-              <div className={`text-2xl font-bold mt-1 ${winner === 1 ? "text-green-600" : ""}`}>
+              <div className={`text-3xl font-bold mt-2 ${winner === 1 ? "text-green-600" : ""}`}>
                 {score[1]}
               </div>
             )}
@@ -123,9 +126,9 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
         {prediction && status === "pre" && team1 && team2 && (
           <>
             <Separator />
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Win Probability
+                Win Probability (Model)
               </div>
 
               {/* Probability bar */}
@@ -152,8 +155,8 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
 
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{team1.abbreviation}</span>
-                <span className="capitalize">
-                  Source: {prediction.source === "blended" ? "Odds + Seed Model" : prediction.source === "odds-implied" ? "Betting Odds" : "Historical Seed Data"}
+                <span className="capitalize text-center text-[11px]">
+                  {prediction.source === "blended" ? "Odds + Seed Model" : prediction.source === "odds-implied" ? "Betting Odds" : "Historical Seed Data"}
                 </span>
                 <span>{team2.abbreviation}</span>
               </div>
@@ -161,32 +164,114 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
           </>
         )}
 
-        {/* Odds table */}
+        {/* Odds & Implied Probability */}
         {odds && odds.bookmakers.length > 0 && status === "pre" && (
           <>
             <Separator />
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Moneyline Odds
+                Betting Odds
               </div>
+
+              {/* Implied Probability from Odds */}
+              {impliedProbs && (
+                <div className="bg-muted/50 rounded-md p-2 mb-2">
+                  <div className="text-[11px] font-semibold text-muted-foreground mb-2">
+                    Implied Win Probability (Vig Removed)
+                  </div>
+                  <div className="flex h-5 rounded overflow-hidden text-[9px] font-bold text-white">
+                    <div
+                      className="flex items-center justify-center transition-all"
+                      style={{
+                        width: `${impliedProbs[0] * 100}%`,
+                        backgroundColor: team1?.color || "#666",
+                      }}
+                    >
+                      {formatProbability(impliedProbs[0])}
+                    </div>
+                    <div
+                      className="flex items-center justify-center transition-all"
+                      style={{
+                        width: `${impliedProbs[1] * 100}%`,
+                        backgroundColor: team2?.color || "#666",
+                      }}
+                    >
+                      {formatProbability(impliedProbs[1])}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Moneyline odds table */}
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="text-muted-foreground">
-                    <th className="text-left py-1">Book</th>
-                    <th className="text-right py-1">{team1?.abbreviation ?? "Team 1"}</th>
-                    <th className="text-right py-1">{team2?.abbreviation ?? "Team 2"}</th>
+                  <tr className="text-muted-foreground border-b">
+                    <th className="text-left py-2 font-semibold">Sportsbook</th>
+                    <th className="text-right py-2 font-semibold">{team1?.abbreviation ?? "Team 1"}</th>
+                    <th className="text-right py-2 font-semibold">{team2?.abbreviation ?? "Team 2"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {odds.bookmakers.map((bm) => (
-                    <tr key={bm.name} className="border-t border-border/50">
-                      <td className="py-1 font-medium">{bm.name}</td>
-                      <td className="text-right py-1 font-mono">{formatOdds(bm.moneyline[0])}</td>
-                      <td className="text-right py-1 font-mono">{formatOdds(bm.moneyline[1])}</td>
+                    <tr key={bm.name} className="border-t border-border/50 hover:bg-muted/30">
+                      <td className="py-2 font-medium">{bm.name}</td>
+                      <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[0])}</td>
+                      <td className="text-right py-2 font-mono text-sm">{formatOdds(bm.moneyline[1])}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          </>
+        )}
+
+        {/* KenPom Ratings (Placeholder) */}
+        {team1 && team2 && status === "pre" && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                KenPom
+              </div>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-muted-foreground text-[10px]">
+                    <th className="text-left py-1"></th>
+                    <th className="text-center py-1">{team1?.abbreviation}</th>
+                    <th className="text-center py-1">METRIC</th>
+                    <th className="text-center py-1">{team2?.abbreviation}</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[10px]">
+                  <tr className="border-t border-border/50">
+                    <td className="py-1 text-muted-foreground">Rank</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                    <td className="text-center py-1 font-semibold">Ranking</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                  </tr>
+                  <tr className="border-t border-border/50">
+                    <td className="py-1 text-muted-foreground">Adj. Offense</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                    <td className="text-center py-1 font-semibold">Adj. Off</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                  </tr>
+                  <tr className="border-t border-border/50">
+                    <td className="py-1 text-muted-foreground">Adj. Defense</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                    <td className="text-center py-1 font-semibold">Adj. Def</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                  </tr>
+                  <tr className="border-t border-border/50">
+                    <td className="py-1 text-muted-foreground">Tempo</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                    <td className="text-center py-1 font-semibold">Tempo</td>
+                    <td className="text-center py-1 font-mono">-</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="text-[10px] text-muted-foreground/70 mt-2 italic">
+                KenPom data requires additional API integration
+              </p>
             </div>
           </>
         )}

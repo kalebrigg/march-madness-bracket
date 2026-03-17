@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import type { Region as RegionType, Matchup, Prediction } from "@/lib/types";
 import { Round } from "./Round";
 
@@ -18,7 +19,7 @@ export function Region({ region, predictions, onMatchClick, reverse }: RegionPro
       <h3 className="text-sm font-bold text-center mb-2 uppercase tracking-wide">
         {region.name}
       </h3>
-      <div className="flex gap-3 items-stretch">
+      <div className="flex items-stretch gap-3">
         {rounds.map((round) => (
           <Round
             key={round.number}
@@ -27,7 +28,6 @@ export function Region({ region, predictions, onMatchClick, reverse }: RegionPro
             roundNumber={round.number}
             roundName={round.name}
             onMatchClick={onMatchClick}
-            compact={round.number <= 2}
           />
         ))}
       </div>

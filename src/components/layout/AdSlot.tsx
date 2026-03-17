@@ -30,7 +30,7 @@ export function AdSlot({ adSlot, adFormat = "auto", className }: AdSlotProps) {
   if (!clientId) {
     // Show placeholder in development
     return (
-      <div className={`bg-muted/30 border border-dashed border-muted-foreground/20 rounded flex items-center justify-center text-muted-foreground text-xs py-2 ${className ?? ""}`}>
+      <div className={`no-print bg-muted/30 border border-dashed border-muted-foreground/20 rounded flex items-center justify-center text-muted-foreground text-xs py-2 ${className ?? ""}`}>
         Ad Space
       </div>
     );
@@ -39,7 +39,7 @@ export function AdSlot({ adSlot, adFormat = "auto", className }: AdSlotProps) {
   return (
     <ins
       ref={adRef}
-      className={`adsbygoogle block ${className ?? ""}`}
+      className={`adsbygoogle block no-print ${className ?? ""}`}
       data-ad-client={clientId}
       data-ad-slot={adSlot}
       data-ad-format={adFormat}
