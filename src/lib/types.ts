@@ -78,6 +78,7 @@ export interface KenPomRating {
   tempo: number;
   sosEM?: number;
   luck?: number;
+  record?: string; // W-L from KenPom CSV, used when ESPN doesn't return records
 }
 
 export interface TeamKenPom {

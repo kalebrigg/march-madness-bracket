@@ -80,9 +80,94 @@ function stripMascot(teamName: string): string {
 }
 
 /**
+ * W-L records for all 2026 NCAA tournament teams.
+ * ESPN's scoreboard API does not return records for tournament games,
+ * so we source them from the KenPom CSV instead.
+ */
+const TOURNAMENT_RECORDS: Record<string, string> = {
+  "Akron": "29-5",
+  "Alabama": "23-9",
+  "Arizona": "32-2",
+  "Arkansas": "26-8",
+  "BYU": "23-11",
+  "Cal Baptist": "25-8",
+  "California Baptist": "25-8",
+  "Clemson": "24-10",
+  "Duke": "32-2",
+  "Florida": "26-7",
+  "Furman": "22-12",
+  "Georgia": "22-10",
+  "Gonzaga": "30-3",
+  "Hawaii": "24-8",
+  "Hawai'i": "24-8",
+  "High Point": "30-4",
+  "Hofstra": "24-10",
+  "Houston": "28-6",
+  "Idaho": "21-14",
+  "Illinois": "24-8",
+  "Iowa": "21-12",
+  "Iowa St.": "27-7",
+  "Iowa State": "27-7",
+  "Kansas": "23-10",
+  "Kennesaw St.": "21-13",
+  "Kennesaw State": "21-13",
+  "Kentucky": "21-13",
+  "LIU": "24-10",
+  "Long Island University": "24-10",
+  "Long Island": "24-10",
+  "Louisville": "23-10",
+  "McNeese": "28-5",
+  "Miami FL": "25-8",
+  "Miami": "25-8",
+  "Michigan": "31-3",
+  "Michigan St.": "25-7",
+  "Michigan State": "25-7",
+  "Missouri": "20-12",
+  "Nebraska": "26-6",
+  "North Carolina": "24-8",
+  "North Dakota St.": "27-7",
+  "North Dakota State": "27-7",
+  "Northern Iowa": "23-12",
+  "Ohio St.": "21-12",
+  "Ohio State": "21-12",
+  "Penn": "18-11",
+  "Pennsylvania": "18-11",
+  "Purdue": "27-8",
+  "Queens": "21-13",
+  "Saint Louis": "28-5",
+  "Saint Mary's": "27-5",
+  "Santa Clara": "26-8",
+  "Siena": "23-11",
+  "South Florida": "25-8",
+  "St. John's": "28-6",
+  "TCU": "22-11",
+  "Tennessee": "22-11",
+  "Tennessee St.": "23-9",
+  "Tennessee State": "23-9",
+  "Texas A&M": "21-11",
+  "Texas Tech": "22-10",
+  "Troy": "22-11",
+  "UCF": "21-11",
+  "UCLA": "23-11",
+  "UConn": "29-5",
+  "Connecticut": "29-5",
+  "Utah St.": "28-6",
+  "Utah State": "28-6",
+  "VCU": "27-7",
+  "Vanderbilt": "26-8",
+  "Villanova": "24-8",
+  "Virginia": "29-5",
+  "Wisconsin": "24-10",
+  "Wright St.": "23-11",
+  "Wright State": "23-11",
+};
+
+/**
  * Get KenPom rating for a specific team by name.
  * Searches the team name in the KenPom data with flexible matching.
- * Handles mascot names (e.g., "Arizona Wildcats" → matches "Arizona")
+ * Handles mascot names (e.g., "Arizona Wildcats" → matches "Arizona").
+ * Also attaches W-L record from TOURNAMENT_RECORDS since ESPN's API
+ * does not return records for tournament scoreboard games.
  */
 export function getTeamKenPom(
   teamName: string,
@@ -92,15 +177,24 @@ export function getTeamKenPom(
 
   const lowerTeamName = teamName.toLowerCase();
 
+  /** Attach record from TOURNAMENT_RECORDS to a found rating */
+  const withRecord = (rating: KenPomRating): KenPomRating => {
+    if (rating.record) return rating;
+    const record = TOURNAMENT_RECORDS[teamName]
+      ?? TOURNAMENT_RECORDS[rating.teamName]
+      ?? undefined;
+    return record ? { ...rating, record } : rating;
+  };
+
   // Try exact match first
   if (kenPomData[teamName]) {
-    return kenPomData[teamName];
+    return withRecord(kenPomData[teamName]);
   }
 
   // Try case-insensitive match
   for (const [key, value] of Object.entries(kenPomData)) {
     if (key.toLowerCase() === lowerTeamName) {
-      return value;
+      return withRecord(value);
     }
   }
 
@@ -110,7 +204,7 @@ export function getTeamKenPom(
 
   for (const [key, value] of Object.entries(kenPomData)) {
     if (key.toLowerCase() === cleanedLower) {
-      return value;
+      return withRecord(value);
     }
   }
 
@@ -124,7 +218,7 @@ export function getTeamKenPom(
       lowerKey.includes(lowerTeamName) ||
       lowerTeamName.includes(lowerKey)
     ) {
-      return value;
+      return withRecord(value);
     }
   }
 
