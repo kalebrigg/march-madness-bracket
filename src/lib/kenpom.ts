@@ -281,6 +281,7 @@ export const KENPOM_DATA: TeamKenPom = {
   "California Baptist": { rank: 106, teamName: "Cal Baptist", adjEM: 5.99, adjOffense: 107.9, adjDefense: 101.9, tempo: 65.8, luck: 0.091 },
   "UNLV": { rank: 107, teamName: "UNLV", adjEM: 5.97, adjOffense: 115, adjDefense: 109.1, tempo: 69.8, luck: 0.003 },
   "Hawaii": { rank: 108, teamName: "Hawaii", adjEM: 5.97, adjOffense: 107.1, adjDefense: 101.2, tempo: 69.7, luck: 0.038 },
+  "Hawai'i": { rank: 108, teamName: "Hawaii", adjEM: 5.97, adjOffense: 107.1, adjDefense: 101.2, tempo: 69.7, luck: 0.038 },
   "St. Thomas": { rank: 109, teamName: "St. Thomas", adjEM: 5.88, adjOffense: 114, adjDefense: 108.1, tempo: 68.2, luck: -0.034 },
   "St. Thomas (MN)": { rank: 109, teamName: "St. Thomas", adjEM: 5.88, adjOffense: 114, adjDefense: 108.1, tempo: 68.2, luck: -0.034 },
   "UNC Wilmington": { rank: 110, teamName: "UNC Wilmington", adjEM: 5.79, adjOffense: 111.9, adjDefense: 106.1, tempo: 65.1, luck: 0.028 },
@@ -410,4 +411,8 @@ export const KENPOM_DATA: TeamKenPom = {
   "Massachusetts": { rank: 196, teamName: "Massachusetts", adjEM: -2.6, adjOffense: 108.7, adjDefense: 111.3, tempo: 69.9, luck: -0.045 },
   "UMass": { rank: 196, teamName: "Massachusetts", adjEM: -2.6, adjOffense: 108.7, adjDefense: 111.3, tempo: 69.9, luck: -0.045 },
   "Drake": { rank: 197, teamName: "Drake", adjEM: -2.64, adjOffense: 109.9, adjDefense: 112.6, tempo: 67.2, luck: -0.06 },
+  // Teams ranked outside top 197
+  "LIU": { rank: 216, teamName: "LIU", adjEM: -3.95, adjOffense: 105.6, adjDefense: 109.6, tempo: 67.8, luck: 0.104 },
+  "Long Island University": { rank: 216, teamName: "LIU", adjEM: -3.95, adjOffense: 105.6, adjDefense: 109.6, tempo: 67.8, luck: 0.104 },
+  "Long Island": { rank: 216, teamName: "LIU", adjEM: -3.95, adjOffense: 105.6, adjDefense: 109.6, tempo: 67.8, luck: 0.104 },
 };
