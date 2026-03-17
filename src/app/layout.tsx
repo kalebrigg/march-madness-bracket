@@ -15,10 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const BASE_URL = "https://march-madness-bracket-nine.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: "March Madness 2026 Bracket — Game Times, Odds & Predictions",
   description:
-    "The cleanest March Madness bracket on the internet. See every game time, TV channel, venue, betting odds, and win probability in one interactive bracket.",
+    "The cleanest March Madness bracket on the internet. Live scores, game times, TV channels, betting odds, and KenPom win probability — all in one interactive bracket.",
   keywords: [
     "march madness bracket",
     "march madness schedule",
@@ -27,18 +30,23 @@ export const metadata: Metadata = {
     "march madness game times",
     "march madness odds",
     "ncaa tournament schedule",
+    "march madness predictions",
+    "kenpom predictions",
   ],
   openGraph: {
-    title: "March Madness 2026 Bracket — Game Times, Odds & Predictions",
+    title: "March Madness 2026 🏀",
     description:
-      "Every game time, TV channel, venue, and betting odds in one interactive bracket.",
+      "Live bracket · Game times · Betting odds · KenPom predictions. The cleanest tournament tracker on the internet.",
     type: "website",
+    url: BASE_URL,
+    siteName: "March Madness 2026",
   },
   twitter: {
     card: "summary_large_image",
-    title: "March Madness 2026 Bracket — Game Times, Odds & Predictions",
+    title: "March Madness 2026 🏀",
     description:
-      "The cleanest March Madness bracket on the internet.",
+      "Live bracket · Game times · Betting odds · KenPom predictions.",
+    creator: "@kalebrigg",
   },
 };
 

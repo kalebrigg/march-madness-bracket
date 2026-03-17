@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#1e3a5f"/>
+  <!-- Basketball circle -->
+  <circle cx="16" cy="16" r="9" fill="#e85d04" stroke="#c44d00" stroke-width="0.5"/>
+  <!-- Vertical seam -->
+  <path d="M16 7 Q13 11 13 16 Q13 21 16 25" stroke="#7a2e00" stroke-width="1.2" fill="none"/>
+  <path d="M16 7 Q19 11 19 16 Q19 21 16 25" stroke="#7a2e00" stroke-width="1.2" fill="none"/>
+  <!-- Horizontal seam -->
+  <path d="M7 16 Q11 13 16 13 Q21 13 25 16" stroke="#7a2e00" stroke-width="1.2" fill="none"/>
+  <path d="M7 16 Q11 19 16 19 Q21 19 25 16" stroke="#7a2e00" stroke-width="1.2" fill="none"/>
+  <!-- MM text -->
+  <text x="16" y="17.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="5.5" font-weight="900" fill="white" letter-spacing="-0.3">MM</text>
+</svg>
