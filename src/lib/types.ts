@@ -67,6 +67,23 @@ export interface Prediction {
   source: "seed-history" | "odds-implied" | "blended";
 }
 
+// ── KenPom Ratings ──
+
+export interface KenPomRating {
+  rank: number;
+  teamName: string;
+  adjEM: number;
+  adjOffense: number;
+  adjDefense: number;
+  tempo: number;
+  sosEM?: number;
+  luck?: number;
+}
+
+export interface TeamKenPom {
+  [teamName: string]: KenPomRating;
+}
+
 // ── ESPN API response shapes (partial) ──
 
 export interface ESPNScoreboardResponse {

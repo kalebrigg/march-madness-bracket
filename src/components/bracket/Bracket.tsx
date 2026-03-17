@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Tournament, Matchup, Prediction, GameOdds } from "@/lib/types";
+import type { Tournament, Matchup, Prediction, GameOdds, TeamKenPom } from "@/lib/types";
 import { Region } from "./Region";
 import { FinalFour } from "./FinalFour";
 import { GameDetailDialog } from "../game-detail/GameDetailDialog";
@@ -11,9 +11,10 @@ interface BracketProps {
   tournament: Tournament;
   predictions: Record<string, Prediction>;
   odds: Record<string, GameOdds>;
+  kenPomData: TeamKenPom;
 }
 
-export function Bracket({ tournament, predictions, odds }: BracketProps) {
+export function Bracket({ tournament, predictions, odds, kenPomData }: BracketProps) {
   const [selectedGame, setSelectedGame] = useState<Matchup | null>(null);
 
   const handleMatchClick = (matchup: Matchup) => {
@@ -105,6 +106,7 @@ export function Bracket({ tournament, predictions, odds }: BracketProps) {
         matchup={selectedGame}
         prediction={selectedGame ? predictions[selectedGame.gameId] ?? null : null}
         odds={selectedGame ? odds[selectedGame.gameId] ?? null : null}
+        kenPomData={kenPomData}
         onClose={() => setSelectedGame(null)}
       />
     </>

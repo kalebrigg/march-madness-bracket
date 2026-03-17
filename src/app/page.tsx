@@ -1,7 +1,8 @@
 import { fetchTournamentData, buildTournament } from "@/lib/espn";
 import { fetchOdds, parseOdds, makeMatchKey } from "@/lib/odds";
 import { predictMatchup } from "@/lib/prediction";
-import type { Prediction, GameOdds, Matchup } from "@/lib/types";
+import { MOCK_KENPOM_DATA } from "@/lib/kenpom";
+import type { Prediction, GameOdds, Matchup, TeamKenPom } from "@/lib/types";
 import { Bracket } from "@/components/bracket/Bracket";
 import { Header } from "@/components/layout/Header";
 import { AdSlot } from "@/components/layout/AdSlot";
@@ -13,6 +14,9 @@ async function getTournamentData() {
   // Fetch odds
   const oddsData = await fetchOdds();
   const oddsMap = oddsData ? parseOdds(oddsData) : new Map<string, GameOdds>();
+
+  // Use mock KenPom data for now (can be replaced with real API)
+  const kenPomData: TeamKenPom = MOCK_KENPOM_DATA;
 
   // Generate predictions for all matchups (as plain object for serialization)
   const predictions: Record<string, Prediction> = {};
@@ -44,11 +48,11 @@ async function getTournamentData() {
     );
   }
 
-  return { tournament, predictions, odds };
+  return { tournament, predictions, odds, kenPomData };
 }
 
 export default async function Home() {
-  const { tournament, predictions, odds } = await getTournamentData();
+  const { tournament, predictions, odds, kenPomData } = await getTournamentData();
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,7 +63,7 @@ export default async function Home() {
 
         <div className="text-center mb-4 no-print">
           <p className="text-sm text-muted-foreground">
-            Click any matchup for full details including venue, TV channel, odds, and win probability.
+            Click any matchup for full details including venue, TV channel, odds, KenPom ratings, and win probability.
           </p>
         </div>
 
@@ -67,6 +71,7 @@ export default async function Home() {
           tournament={tournament}
           predictions={predictions}
           odds={odds}
+          kenPomData={kenPomData}
         />
 
         {/* <AdSlot adSlot="bottom-banner" adFormat="horizontal" className="mt-4" /> */}

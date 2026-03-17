@@ -9,17 +9,19 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import type { Matchup, Prediction, GameOdds } from "@/lib/types";
+import type { Matchup, Prediction, GameOdds, TeamKenPom } from "@/lib/types";
 import { formatProbability, formatOdds, consensusImpliedProbability, americanToImplied } from "@/lib/odds-utils";
+import { getTeamKenPom } from "@/lib/kenpom";
 
 interface GameDetailDialogProps {
   matchup: Matchup | null;
   prediction: Prediction | null;
   odds: GameOdds | null;
+  kenPomData: TeamKenPom;
   onClose: () => void;
 }
 
-export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDetailDialogProps) {
+export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClose }: GameDetailDialogProps) {
   if (!matchup) return null;
 
   const { teams, status, score, winner, startTime, venue, city, state, broadcast } = matchup;
@@ -48,7 +50,7 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
             <div className="font-bold text-base">{team1?.name ?? "TBD"}</div>
             {team1 && (
               <div className="text-xs text-muted-foreground">
-                #{team1.seed} seed {team1.record && `• ${team1.record}`}
+                #{team1.seed === 99 ? 0 : team1.seed} seed {team1.record && `• ${team1.record}`}
               </div>
             )}
             {status !== "pre" && score && (
@@ -68,7 +70,7 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
             <div className="font-bold text-base">{team2?.name ?? "TBD"}</div>
             {team2 && (
               <div className="text-xs text-muted-foreground">
-                #{team2.seed} seed {team2.record && `• ${team2.record}`}
+                #{team2.seed === 99 ? 0 : team2.seed} seed {team2.record && `• ${team2.record}`}
               </div>
             )}
             {status !== "pre" && score && (
@@ -225,53 +227,71 @@ export function GameDetailDialog({ matchup, prediction, odds, onClose }: GameDet
           </>
         )}
 
-        {/* KenPom Ratings (Placeholder) */}
+        {/* KenPom Ratings */}
         {team1 && team2 && status === "pre" && (
           <>
             <Separator />
             <div className="space-y-2">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                KenPom
+                KenPom Ratings
               </div>
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-muted-foreground text-[10px]">
-                    <th className="text-left py-1"></th>
-                    <th className="text-center py-1">{team1?.abbreviation}</th>
-                    <th className="text-center py-1">METRIC</th>
-                    <th className="text-center py-1">{team2?.abbreviation}</th>
-                  </tr>
-                </thead>
-                <tbody className="text-[10px]">
-                  <tr className="border-t border-border/50">
-                    <td className="py-1 text-muted-foreground">Rank</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                    <td className="text-center py-1 font-semibold">Ranking</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                  </tr>
-                  <tr className="border-t border-border/50">
-                    <td className="py-1 text-muted-foreground">Adj. Offense</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                    <td className="text-center py-1 font-semibold">Adj. Off</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                  </tr>
-                  <tr className="border-t border-border/50">
-                    <td className="py-1 text-muted-foreground">Adj. Defense</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                    <td className="text-center py-1 font-semibold">Adj. Def</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                  </tr>
-                  <tr className="border-t border-border/50">
-                    <td className="py-1 text-muted-foreground">Tempo</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                    <td className="text-center py-1 font-semibold">Tempo</td>
-                    <td className="text-center py-1 font-mono">-</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p className="text-[10px] text-muted-foreground/70 mt-2 italic">
-                KenPom data requires additional API integration
-              </p>
+              {(() => {
+                const kp1 = getTeamKenPom(team1.name, kenPomData);
+                const kp2 = getTeamKenPom(team2.name, kenPomData);
+
+                if (!kp1 && !kp2) {
+                  return (
+                    <div className="text-xs text-muted-foreground italic py-2">
+                      KenPom data not available for these teams. Visit <a href="https://kenpom.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">kenpom.com</a> for ratings.
+                    </div>
+                  );
+                }
+
+                return (
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-muted-foreground text-[10px]">
+                        <th className="text-left py-1"></th>
+                        <th className="text-center py-1 font-semibold">{team1?.abbreviation}</th>
+                        <th className="text-center py-1 font-semibold">METRIC</th>
+                        <th className="text-center py-1 font-semibold">{team2?.abbreviation}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-[10px]">
+                      <tr className="border-t border-border/50">
+                        <td className="py-1.5 text-muted-foreground">Rank</td>
+                        <td className="text-center py-1.5 font-semibold">{kp1?.rank ?? "-"}</td>
+                        <td className="text-center py-1.5 font-semibold">Ranking</td>
+                        <td className="text-center py-1.5 font-semibold">{kp2?.rank ?? "-"}</td>
+                      </tr>
+                      <tr className="border-t border-border/50">
+                        <td className="py-1.5 text-muted-foreground">Adj. EM</td>
+                        <td className="text-center py-1.5 font-mono">{kp1?.adjEM?.toFixed(1) ?? "-"}</td>
+                        <td className="text-center py-1.5 font-semibold">Adj. EM</td>
+                        <td className="text-center py-1.5 font-mono">{kp2?.adjEM?.toFixed(1) ?? "-"}</td>
+                      </tr>
+                      <tr className="border-t border-border/50">
+                        <td className="py-1.5 text-muted-foreground">Adj. Off</td>
+                        <td className="text-center py-1.5 font-mono">{kp1?.adjOffense?.toFixed(1) ?? "-"}</td>
+                        <td className="text-center py-1.5 font-semibold">Adj. Off</td>
+                        <td className="text-center py-1.5 font-mono">{kp2?.adjOffense?.toFixed(1) ?? "-"}</td>
+                      </tr>
+                      <tr className="border-t border-border/50">
+                        <td className="py-1.5 text-muted-foreground">Adj. Def</td>
+                        <td className="text-center py-1.5 font-mono">{kp1?.adjDefense?.toFixed(1) ?? "-"}</td>
+                        <td className="text-center py-1.5 font-semibold">Adj. Def</td>
+                        <td className="text-center py-1.5 font-mono">{kp2?.adjDefense?.toFixed(1) ?? "-"}</td>
+                      </tr>
+                      <tr className="border-t border-border/50">
+                        <td className="py-1.5 text-muted-foreground">Tempo</td>
+                        <td className="text-center py-1.5 font-mono">{kp1?.tempo?.toFixed(1) ?? "-"}</td>
+                        <td className="text-center py-1.5 font-semibold">Tempo</td>
+                        <td className="text-center py-1.5 font-mono">{kp2?.tempo?.toFixed(1) ?? "-"}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                );
+              })()}
             </div>
           </>
         )}

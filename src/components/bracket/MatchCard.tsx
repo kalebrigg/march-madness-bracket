@@ -42,7 +42,7 @@ function TeamRow({
             <div className="w-5 h-5 rounded-full bg-muted shrink-0" />
           )}
           <span className="text-muted-foreground font-mono text-[11px] w-5 text-center shrink-0">
-            {team.seed}
+            {team.seed === 99 ? 0 : team.seed}
           </span>
           <span className="truncate flex-1 text-sm">{team.name}</span>
           {showScore && score !== undefined && (
