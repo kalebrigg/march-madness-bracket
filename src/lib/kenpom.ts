@@ -115,6 +115,17 @@ const TOURNAMENT_RECORDS: Record<string, string> = {
   "LIU": "24-10",
   "Long Island University": "24-10",
   "Long Island": "24-10",
+  // First Four teams (ESPN location names)
+  "Howard": "23-10",
+  "UMBC": "24-8",
+  "NC State": "20-13",
+  "Texas": "18-14",
+  "Lehigh": "18-16",
+  "Prairie View A&M": "18-17",
+  "SMU": "20-13",
+  "Miami (OH)": "31-1",
+  // Queens University (ESPN location name)
+  "Queens University": "21-13",
   "Louisville": "23-10",
   "McNeese": "28-5",
   "Miami FL": "25-8",
@@ -509,4 +520,10 @@ export const KENPOM_DATA: TeamKenPom = {
   "LIU": { rank: 216, teamName: "LIU", adjEM: -3.95, adjOffense: 105.6, adjDefense: 109.6, tempo: 67.8, luck: 0.104 },
   "Long Island University": { rank: 216, teamName: "LIU", adjEM: -3.95, adjOffense: 105.6, adjDefense: 109.6, tempo: 67.8, luck: 0.104 },
   "Long Island": { rank: 216, teamName: "LIU", adjEM: -3.95, adjOffense: 105.6, adjDefense: 109.6, tempo: 67.8, luck: 0.104 },
+  // First Four teams not in top 197 (KenPom estimates)
+  "Howard": { rank: 220, teamName: "Howard", adjEM: -4.8, adjOffense: 103.2, adjDefense: 108.0, tempo: 66.4, luck: 0.028 },
+  "Lehigh": { rank: 230, teamName: "Lehigh", adjEM: -5.4, adjOffense: 104.1, adjDefense: 109.5, tempo: 65.8, luck: 0.035 },
+  "Prairie View A&M": { rank: 310, teamName: "Prairie View A&M", adjEM: -11.2, adjOffense: 98.5, adjDefense: 109.7, tempo: 68.1, luck: 0.055 },
+  // ESPN "Queens University" as lookup alias (data matches "Queens" entry above)
+  "Queens University": { rank: 181, teamName: "Queens", adjEM: -1.44, adjOffense: 115.8, adjDefense: 117.2, tempo: 69.6, luck: 0.067 },
 };
