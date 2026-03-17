@@ -83,6 +83,21 @@ export function MatchCard({
   const team2 = teams[1];
   const isPlaceholder = !team1 && !team2;
 
+  // Detect model-predicted upset: higher seed number (underdog) predicted to win at >55%
+  // Only flag when both teams have valid, differing seeds
+  const isPredictedUpset =
+    status === "pre" &&
+    prediction != null &&
+    team1 != null &&
+    team2 != null &&
+    team1.seed !== 99 &&
+    team2.seed !== 99 &&
+    team1.seed !== team2.seed &&
+    (
+      (prediction.team2WinPct > 0.55 && team2.seed > team1.seed) ||
+      (prediction.team1WinPct > 0.55 && team1.seed > team2.seed)
+    );
+
   // Determine which team is favored by the model and compute edge color
   // Show for all statuses so pre-game predictions can be compared to results
   let metricDisplay: React.ReactNode = null;
@@ -122,7 +137,8 @@ export function MatchCard({
         "w-full text-left rounded border bg-card text-card-foreground text-xs transition-all overflow-hidden",
         !isPlaceholder && "hover:shadow-md hover:border-primary/50 cursor-pointer",
         isPlaceholder && "opacity-60 cursor-default",
-        status === "in" && "border-red-500 ring-1 ring-red-500/30"
+        status === "in" && "border-red-500 ring-1 ring-red-500/30",
+        isPredictedUpset && "bg-red-500/[0.04] border-red-400/40"
       )}
     >
       {/* Team 1 */}
@@ -174,7 +190,12 @@ export function MatchCard({
             <span>TBA</span>
           )}
 
-          {metricDisplay}
+          <span className="flex items-center gap-1">
+            {isPredictedUpset && (
+              <span className="text-red-500 opacity-80" title="Model predicts upset">⚡</span>
+            )}
+            {metricDisplay}
+          </span>
         </div>
       )}
     </button>
