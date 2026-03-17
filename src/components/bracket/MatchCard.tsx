@@ -98,6 +98,15 @@ export function MatchCard({
       (prediction.team1WinPct > 0.55 && team1.seed > team2.seed)
     );
 
+  // Detect toss-up: neither team above 55% win probability — worth watching for bettors
+  const isTossup =
+    status === "pre" &&
+    !isPredictedUpset &&
+    prediction != null &&
+    team1 != null &&
+    team2 != null &&
+    Math.max(prediction.team1WinPct, prediction.team2WinPct) < 0.55;
+
   // Determine which team is favored by the model and compute edge color
   // Show for all statuses so pre-game predictions can be compared to results
   let metricDisplay: React.ReactNode = null;
@@ -138,7 +147,8 @@ export function MatchCard({
         !isPlaceholder && "hover:shadow-md hover:border-primary/50 cursor-pointer",
         isPlaceholder && "opacity-60 cursor-default",
         status === "in" && "border-red-500 ring-1 ring-red-500/30",
-        isPredictedUpset && "bg-red-500/[0.04] border-red-400/40"
+        isPredictedUpset && "bg-red-500/[0.04] border-red-400/40",
+        isTossup && "bg-amber-500/[0.04] border-amber-400/40"
       )}
     >
       {/* Team 1 */}
@@ -193,6 +203,9 @@ export function MatchCard({
           <span className="flex items-center gap-1">
             {isPredictedUpset && (
               <span className="text-red-500 opacity-80" title="Model predicts upset">⚡</span>
+            )}
+            {isTossup && (
+              <span className="text-amber-500 opacity-90" title="Toss-up game — too close to call">⚖️</span>
             )}
             {metricDisplay}
           </span>
