@@ -46,8 +46,8 @@ export function Header() {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[#FFDD00] text-[#000000] hover:bg-[#FFDD00]/90 transition-colors no-print"
           >
-            <span>☕</span>
-            <span className="hidden md:inline">Buy me a coffee</span>
+            <span>🍕</span>
+            <span className="hidden md:inline">Buy me a pizza</span>
           </a>
           <PrintButton />
           <ThemeToggle />
