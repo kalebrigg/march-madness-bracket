@@ -13,102 +13,48 @@ export default function OGImage() {
           width: "1200px",
           height: "630px",
           display: "flex",
-          flexDirection: "column",
-          background: "linear-gradient(135deg, #0a0e1a 0%, #0f1f3d 50%, #0a1628 100%)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+          background: "#080f1e",
+          fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Background grid lines */}
+        {/* Big blue glow top-left */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
+            top: "-200px",
+            left: "-100px",
+            width: "700px",
+            height: "700px",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 65%)",
           }}
         />
-
-        {/* Glow orbs */}
+        {/* Orange glow bottom-right */}
         <div
           style={{
             position: "absolute",
-            top: "-120px",
+            bottom: "-150px",
             right: "-80px",
-            width: "500px",
-            height: "500px",
+            width: "550px",
+            height: "550px",
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-100px",
-            left: "-60px",
-            width: "400px",
-            height: "400px",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(239,68,68,0.1) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(234,88,12,0.25) 0%, transparent 65%)",
           }}
         />
 
-        {/* Bracket lines decoration — right side */}
+        {/* Left accent bar */}
         <div
           style={{
             position: "absolute",
-            right: "60px",
-            top: "80px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0px",
-            opacity: 0.2,
+            left: "0",
+            top: "0",
+            bottom: "0",
+            width: "8px",
+            background: "linear-gradient(180deg, #2563eb 0%, #7c3aed 50%, #ea580c 100%)",
           }}
-        >
-          {/* Round 1 */}
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: i % 2 === 0 ? "0px" : "32px",
-              }}
-            >
-              <div
-                style={{
-                  width: "80px",
-                  height: "28px",
-                  border: "1.5px solid rgba(255,255,255,0.5)",
-                  borderRadius: "4px",
-                  marginRight: i % 2 === 0 ? "0px" : "0px",
-                }}
-              />
-              {i % 2 === 0 && (
-                <div
-                  style={{
-                    width: "24px",
-                    height: "30px",
-                    borderTop: "1.5px solid rgba(255,255,255,0.5)",
-                    borderRight: "1.5px solid rgba(255,255,255,0.5)",
-                  }}
-                />
-              )}
-              {i % 2 === 1 && (
-                <div
-                  style={{
-                    width: "24px",
-                    height: "30px",
-                    borderBottom: "1.5px solid rgba(255,255,255,0.5)",
-                    borderRight: "1.5px solid rgba(255,255,255,0.5)",
-                  }}
-                />
-              )}
-            </div>
-          ))}
-        </div>
+        />
 
         {/* Main content */}
         <div
@@ -116,29 +62,29 @@ export default function OGImage() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "70px 80px",
+            padding: "60px 80px 60px 88px",
             flex: 1,
             position: "relative",
           }}
         >
-          {/* Top badge */}
+          {/* Top label */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
-              marginBottom: "28px",
+              gap: "14px",
+              marginBottom: "24px",
             }}
           >
             <div
               style={{
-                background: "rgba(239,68,68,0.9)",
-                borderRadius: "6px",
-                padding: "5px 14px",
-                fontSize: "13px",
-                fontWeight: "700",
+                background: "#ea580c",
+                borderRadius: "8px",
+                padding: "6px 18px",
+                fontSize: "18px",
+                fontWeight: "800",
                 color: "white",
-                letterSpacing: "0.08em",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
               }}
             >
@@ -146,101 +92,138 @@ export default function OGImage() {
             </div>
             <div
               style={{
-                background: "rgba(255,255,255,0.08)",
-                borderRadius: "6px",
-                padding: "5px 14px",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "rgba(255,255,255,0.6)",
-                letterSpacing: "0.06em",
+                fontSize: "18px",
+                fontWeight: "700",
+                color: "rgba(255,255,255,0.35)",
+                letterSpacing: "0.08em",
               }}
             >
-              2026
+              · Men's Basketball
             </div>
           </div>
 
-          {/* Main title */}
+          {/* Giant headline */}
           <div
             style={{
-              fontSize: "76px",
+              fontSize: "110px",
               fontWeight: "900",
               color: "white",
-              lineHeight: "1.0",
-              letterSpacing: "-0.02em",
-              marginBottom: "8px",
+              lineHeight: "0.95",
+              letterSpacing: "-0.03em",
+              marginBottom: "6px",
             }}
           >
-            March
+            MARCH
           </div>
           <div
             style={{
-              fontSize: "76px",
+              fontSize: "110px",
               fontWeight: "900",
-              lineHeight: "1.0",
-              letterSpacing: "-0.02em",
-              marginBottom: "32px",
-              background: "linear-gradient(90deg, #60a5fa, #3b82f6)",
-              backgroundClip: "text",
-              color: "transparent",
+              lineHeight: "0.95",
+              letterSpacing: "-0.03em",
+              marginBottom: "36px",
+              color: "#3b82f6",
             }}
           >
-            Madness.
+            MADNESS
           </div>
 
-          {/* Feature pills */}
+          {/* 3 big stats / features */}
           <div
             style={{
               display: "flex",
-              gap: "12px",
-              marginBottom: "44px",
-              flexWrap: "wrap",
+              gap: "0px",
             }}
           >
-            {["🏀 Live Bracket", "🕐 Game Times", "📺 TV Channels", "📊 Betting Odds", "🤖 AI Predictions"].map(
-              (label) => (
-                <div
-                  key={label}
+            {[
+              { icon: "🏀", label: "Live Bracket" },
+              { icon: "📊", label: "Betting Odds" },
+              { icon: "🤖", label: "AI Predictions" },
+            ].map((item, i) => (
+              <div
+                key={item.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "14px 28px",
+                  borderLeft: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)",
+                  paddingLeft: i === 0 ? "0" : "28px",
+                }}
+              >
+                <span style={{ fontSize: "28px" }}>{item.icon}</span>
+                <span
                   style={{
-                    background: "rgba(255,255,255,0.07)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    borderRadius: "100px",
-                    padding: "8px 18px",
-                    fontSize: "15px",
+                    fontSize: "22px",
+                    fontWeight: "700",
                     color: "rgba(255,255,255,0.85)",
-                    fontWeight: "500",
                   }}
                 >
-                  {label}
-                </div>
-              )
-            )}
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right side — year + URL */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            padding: "60px 60px 60px 0",
+            position: "relative",
+          }}
+        >
+          {/* Big year */}
+          <div
+            style={{
+              fontSize: "96px",
+              fontWeight: "900",
+              color: "rgba(255,255,255,0.07)",
+              letterSpacing: "-0.04em",
+              lineHeight: "1",
+              textAlign: "right",
+            }}
+          >
+            2026
           </div>
 
-          {/* URL bar */}
+          {/* URL */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "10px",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "8px",
             }}
           >
             <div
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: "#22c55e",
-              }}
-            />
-            <div
-              style={{
-                fontSize: "16px",
-                color: "rgba(255,255,255,0.4)",
-                fontFamily: "monospace",
-                letterSpacing: "0.02em",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              march-madness-bracket-nine.vercel.app
+              <div
+                style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  background: "#22c55e",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: "18px",
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "monospace",
+                }}
+              >
+                march-madness-bracket-nine.vercel.app
+              </span>
             </div>
           </div>
         </div>
