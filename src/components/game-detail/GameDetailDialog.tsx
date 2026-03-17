@@ -23,6 +23,7 @@ import {
 import { getTeamKenPom } from "@/lib/kenpom";
 import { calcKenPomProjection, formatScore, formatSpread } from "@/lib/kenpom-model";
 import { MonteCarloSection } from "./MonteCarloSection";
+import { CollapsibleSection } from "./CollapsibleSection";
 
 interface GameDetailDialogProps {
   matchup: Matchup | null;
@@ -32,6 +33,15 @@ interface GameDetailDialogProps {
   onClose: () => void;
 }
 
+/** Small "Pre-game estimate/lines" pill shown next to section titles */
+function PreGameBadge({ label = "Pre-game estimate" }: { label?: string }) {
+  return (
+    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
+      {label}
+    </span>
+  );
+}
+
 export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClose }: GameDetailDialogProps) {
   if (!matchup) return null;
 
@@ -39,15 +49,12 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
   const team1 = teams[0];
   const team2 = teams[1];
 
-  // KenPom lookups (needed early for record fallback)
   const kp1 = team1 ? getTeamKenPom(team1.name, kenPomData) : null;
   const kp2 = team2 ? getTeamKenPom(team2.name, kenPomData) : null;
 
-  // ESPN doesn't return records for tournament games — fall back to KenPom record
   const record1 = team1?.record || kp1?.record || "";
   const record2 = team2?.record || kp2?.record || "";
 
-  // Calculate implied probabilities from odds
   const impliedProbs = odds ? consensusImpliedProbability(odds.bookmakers) : null;
 
   return (
@@ -59,9 +66,8 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           </DialogTitle>
         </DialogHeader>
 
-        {/* Teams matchup header */}
+        {/* Teams header — always visible */}
         <div className="flex items-center justify-between gap-4 py-3">
-          {/* Team 1 */}
           <div className="flex-1 text-center">
             {team1?.logo && (
               <img src={team1.logo} alt={team1.name} className="w-16 h-16 mx-auto mb-2 object-contain" />
@@ -81,7 +87,6 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
 
           <div className="text-muted-foreground font-bold text-xl">VS</div>
 
-          {/* Team 2 */}
           <div className="flex-1 text-center">
             {team2?.logo && (
               <img src={team2.logo} alt={team2.name} className="w-16 h-16 mx-auto mb-2 object-contain" />
@@ -102,105 +107,81 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
 
         <Separator />
 
-        {/* Game Info */}
-        <div className="space-y-2 text-sm">
-          {status === "in" && (
-            <div className="flex items-center gap-2 text-red-600 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              LIVE
-            </div>
-          )}
-          {status === "post" && (
-            <Badge variant="secondary">FINAL</Badge>
-          )}
-
-          {startTime && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Date & Time</span>
-              <span className="font-medium">{format(new Date(startTime), "EEE, MMM d · h:mm a")}</span>
-            </div>
-          )}
-
-          {venue && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Venue</span>
-              <span className="font-medium text-right">{venue}</span>
-            </div>
-          )}
-
-          {(city || state) && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Location</span>
-              <span className="font-medium">{[city, state].filter(Boolean).join(", ")}</span>
-            </div>
-          )}
-
-          {broadcast && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">TV</span>
-              <span className="font-bold">{broadcast}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Win Probability */}
-        {prediction && team1 && team2 && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Win Probability (Model)
-                </div>
-                {status !== "pre" && (
-                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
-                    Pre-game estimate
-                  </span>
-                )}
+        {/* ── Game Info ─────────────────────────────────────────── */}
+        <CollapsibleSection title="Game Info" defaultOpen={true}>
+          <div className="space-y-2 text-sm">
+            {status === "in" && (
+              <div className="flex items-center gap-2 text-red-600 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                LIVE
               </div>
+            )}
+            {status === "post" && <Badge variant="secondary">FINAL</Badge>}
+            {startTime && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Date &amp; Time</span>
+                <span className="font-medium">{format(new Date(startTime), "EEE, MMM d · h:mm a")}</span>
+              </div>
+            )}
+            {venue && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Venue</span>
+                <span className="font-medium text-right">{venue}</span>
+              </div>
+            )}
+            {(city || state) && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Location</span>
+                <span className="font-medium">{[city, state].filter(Boolean).join(", ")}</span>
+              </div>
+            )}
+            {broadcast && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">TV</span>
+                <span className="font-bold">{broadcast}</span>
+              </div>
+            )}
+          </div>
+        </CollapsibleSection>
 
-              {/* Probability bar */}
+        {/* ── Win Probability ───────────────────────────────────── */}
+        {prediction && team1 && team2 && (
+          <CollapsibleSection
+            title="Win Probability"
+            badge={status !== "pre" ? <PreGameBadge /> : undefined}
+            defaultOpen={true}
+          >
+            <div className="space-y-3 pt-1">
               <div className="flex h-6 rounded-full overflow-hidden text-[10px] font-bold text-white">
                 <div
                   className="flex items-center justify-center transition-all"
-                  style={{
-                    width: `${prediction.team1WinPct * 100}%`,
-                    backgroundColor: team1.color,
-                  }}
+                  style={{ width: `${prediction.team1WinPct * 100}%`, backgroundColor: team1.color }}
                 >
                   {formatProbability(prediction.team1WinPct)}
                 </div>
                 <div
                   className="flex items-center justify-center transition-all"
-                  style={{
-                    width: `${prediction.team2WinPct * 100}%`,
-                    backgroundColor: team2.color,
-                  }}
+                  style={{ width: `${prediction.team2WinPct * 100}%`, backgroundColor: team2.color }}
                 >
                   {formatProbability(prediction.team2WinPct)}
                 </div>
               </div>
-
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{team1.abbreviation}</span>
                 <span className="capitalize text-center text-[11px]">
-                  {prediction.source === "kenpom-blended"
-                    ? "KenPom + Odds + Seed"
-                    : prediction.source === "kenpom-only"
-                    ? "KenPom + Seed"
-                    : prediction.source === "blended"
-                    ? "Odds + Seed"
-                    : prediction.source === "odds-implied"
-                    ? "Betting Odds"
+                  {prediction.source === "kenpom-blended" ? "KenPom + Odds + Seed"
+                    : prediction.source === "kenpom-only" ? "KenPom + Seed"
+                    : prediction.source === "blended" ? "Odds + Seed"
+                    : prediction.source === "odds-implied" ? "Betting Odds"
                     : "Historical Seed Data"}
                 </span>
                 <span>{team2.abbreviation}</span>
               </div>
             </div>
-          </>
+          </CollapsibleSection>
         )}
 
-        {/* KenPom Game Projection */}
+        {/* ── KenPom Projection ─────────────────────────────────── */}
         {team1 && team2 && kp1 && kp2 &&
           kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
           kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
@@ -208,32 +189,21 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             kp1.tempo, kp1.adjOffense, kp1.adjDefense,
             kp2.tempo, kp2.adjOffense, kp2.adjDefense
           );
-          // Consensus book spread (average of available books, team1's side)
           const bookSpreadValues = odds?.bookmakers
             .filter((bm) => bm.spread !== undefined)
             .map((bm) => bm.spread![0]) ?? [];
           const avgBookSpread = bookSpreadValues.length > 0
             ? bookSpreadValues.reduce((a, b) => a + b, 0) / bookSpreadValues.length
             : null;
-
           const spreadDiff = avgBookSpread !== null ? proj.spread - (-avgBookSpread) : null;
 
           return (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    KenPom Projection
-                  </div>
-                  {status !== "pre" && (
-                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
-                      Pre-game estimate
-                    </span>
-                  )}
-                </div>
-
-                {/* Projected score banner — show vs actual if game finished */}
+            <CollapsibleSection
+              title="KenPom Projection"
+              badge={status !== "pre" ? <PreGameBadge /> : undefined}
+              defaultOpen={true}
+            >
+              <div className="space-y-2 pt-1">
                 {status === "post" && score ? (
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center justify-between bg-muted/40 rounded-md px-3 py-2">
@@ -281,21 +251,15 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                     </tr>
                     <tr className="border-t border-border/50">
                       <td className="py-1.5 text-muted-foreground">Proj. Spread</td>
-                      <td className="text-right py-1.5 font-mono">
-                        {team1.abbreviation} {formatSpread(proj.spread)}
-                      </td>
+                      <td className="text-right py-1.5 font-mono">{team1.abbreviation} {formatSpread(proj.spread)}</td>
                       <td className="text-right py-1.5 text-muted-foreground/70">
-                        {avgBookSpread !== null
-                          ? `book: ${avgBookSpread > 0 ? "+" : ""}${avgBookSpread.toFixed(1)}`
-                          : ""}
+                        {avgBookSpread !== null ? `book: ${avgBookSpread > 0 ? "+" : ""}${avgBookSpread.toFixed(1)}` : ""}
                       </td>
                     </tr>
                     {spreadDiff !== null && (
                       <tr className="border-t border-border/50">
                         <td className="py-1.5 text-muted-foreground">Spread vs. Book</td>
-                        <td className={`text-right py-1.5 font-mono col-span-2 ${
-                          Math.abs(spreadDiff) > 2 ? "text-green-600 font-semibold" : "text-muted-foreground"
-                        }`} colSpan={2}>
+                        <td className={`text-right py-1.5 font-mono col-span-2 ${Math.abs(spreadDiff) > 2 ? "text-green-600 font-semibold" : "text-muted-foreground"}`} colSpan={2}>
                           {spreadDiff >= 0 ? "+" : ""}{spreadDiff.toFixed(1)} pts
                           {Math.abs(spreadDiff) > 3 ? " ← value" : ""}
                         </td>
@@ -305,9 +269,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                       <td className="py-1.5 text-muted-foreground">Proj. Total</td>
                       <td className="text-right py-1.5 font-mono">{proj.total.toFixed(1)}</td>
                       <td className="text-right py-1.5 text-muted-foreground/70">
-                        {odds?.consensusTotal != null
-                          ? `O/U: ${odds.consensusTotal.toFixed(1)}`
-                          : ""}
+                        {odds?.consensusTotal != null ? `O/U: ${odds.consensusTotal.toFixed(1)}` : ""}
                       </td>
                     </tr>
                     {odds?.consensusTotal != null && (() => {
@@ -329,14 +291,14 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                   </tbody>
                 </table>
                 <p className="text-[10px] text-muted-foreground/60 pt-0.5">
-                  Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line. Note: the model tends to project 5–15 pts higher scoring than actual tournament games (efficiency ratings are season averages vs. average opponents; tournament defensive intensity is higher).
+                  Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line. Note: the model tends to project 5–15 pts higher scoring than actual tournament games.
                 </p>
               </div>
-            </>
+            </CollapsibleSection>
           );
         })()}
 
-        {/* Monte Carlo Simulation */}
+        {/* ── Monte Carlo Simulation ────────────────────────────── */}
         {team1 && team2 && kp1 && kp2 &&
           kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
           kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
@@ -353,22 +315,27 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           const ouLine = odds?.consensusTotal ?? null;
 
           return (
-            <>
-              <Separator />
-              <MonteCarloSection
-                projSpread={proj.spread}
-                projTotal={proj.total}
-                bookSpread={avgBookSpread}
-                ouLine={ouLine}
-                team1Abbr={team1.abbreviation}
-                team2Abbr={team2.abbreviation}
-                isPreGame={status === "pre"}
-              />
-            </>
+            <CollapsibleSection
+              title="Monte Carlo Simulation"
+              badge={status !== "pre" ? <PreGameBadge /> : undefined}
+              defaultOpen={false}
+            >
+              <div className="pt-1">
+                <MonteCarloSection
+                  projSpread={proj.spread}
+                  projTotal={proj.total}
+                  bookSpread={avgBookSpread}
+                  ouLine={ouLine}
+                  team1Abbr={team1.abbreviation}
+                  team2Abbr={team2.abbreviation}
+                  isPreGame={status === "pre"}
+                />
+              </div>
+            </CollapsibleSection>
           );
         })()}
 
-        {/* Edge & Value Analysis */}
+        {/* ── Edge & Value ──────────────────────────────────────── */}
         {prediction && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && (() => {
           const edge1 = prediction.team1WinPct - impliedProbs[0];
           const edge2 = prediction.team2WinPct - impliedProbs[1];
@@ -380,19 +347,12 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           const fair2 = probabilityToAmericanOdds(prediction.team2WinPct);
 
           return (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Edge &amp; Value
-                  </div>
-                  {status !== "pre" && (
-                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
-                      Pre-game lines
-                    </span>
-                  )}
-                </div>
+            <CollapsibleSection
+              title="Edge & Value"
+              badge={status !== "pre" ? <PreGameBadge label="Pre-game lines" /> : undefined}
+              defaultOpen={true}
+            >
+              <div className="space-y-2 pt-1">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="text-muted-foreground/70 text-[10px] border-b">
@@ -433,29 +393,20 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                   Edge = model − market. EV per $100 bet at average line across DraftKings, FanDuel &amp; BetMGM.
                 </p>
               </div>
-            </>
+            </CollapsibleSection>
           );
         })()}
 
-        {/* Odds & Implied Probability */}
+        {/* ── Betting Odds ──────────────────────────────────────── */}
         {(odds || status === "pre") && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Betting Odds
-                </div>
-                {status !== "pre" && (
-                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
-                    Pre-game lines
-                  </span>
-                )}
-              </div>
-
+          <CollapsibleSection
+            title="Betting Odds"
+            badge={status !== "pre" ? <PreGameBadge label="Pre-game lines" /> : undefined}
+            defaultOpen={true}
+          >
+            <div className="space-y-3 pt-1">
               {odds && odds.bookmakers && odds.bookmakers.length > 0 ? (
                 <>
-                  {/* Implied Probability from Odds */}
                   {impliedProbs && (
                     <div className="bg-muted/50 rounded-md p-2 mb-2">
                       <div className="text-[11px] font-semibold text-muted-foreground mb-2">
@@ -464,27 +415,19 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                       <div className="flex h-5 rounded overflow-hidden text-[9px] font-bold text-white">
                         <div
                           className="flex items-center justify-center transition-all"
-                          style={{
-                            width: `${impliedProbs[0] * 100}%`,
-                            backgroundColor: team1?.color || "#666",
-                          }}
+                          style={{ width: `${impliedProbs[0] * 100}%`, backgroundColor: team1?.color || "#666" }}
                         >
                           {formatProbability(impliedProbs[0])}
                         </div>
                         <div
                           className="flex items-center justify-center transition-all"
-                          style={{
-                            width: `${impliedProbs[1] * 100}%`,
-                            backgroundColor: team2?.color || "#666",
-                          }}
+                          style={{ width: `${impliedProbs[1] * 100}%`, backgroundColor: team2?.color || "#666" }}
                         >
                           {formatProbability(impliedProbs[1])}
                         </div>
                       </div>
                     </div>
                   )}
-
-                  {/* Odds table: moneyline + spread + O/U */}
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="text-muted-foreground/70 border-b text-[10px]">
@@ -507,20 +450,14 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                           <td className="py-2 font-medium">{bm.name}</td>
                           <td className="text-right py-2 font-mono">{formatOdds(bm.moneyline[0])}</td>
                           <td className="text-right py-2 font-mono">
-                            {bm.spread
-                              ? `${bm.spread[0] > 0 ? "+" : ""}${bm.spread[0]} (${formatOdds(bm.spreadJuice?.[0] ?? -110)})`
-                              : "—"}
+                            {bm.spread ? `${bm.spread[0] > 0 ? "+" : ""}${bm.spread[0]} (${formatOdds(bm.spreadJuice?.[0] ?? -110)})` : "—"}
                           </td>
                           <td className="text-right py-2 font-mono">{formatOdds(bm.moneyline[1])}</td>
                           <td className="text-right py-2 font-mono">
-                            {bm.spread
-                              ? `${bm.spread[1] > 0 ? "+" : ""}${bm.spread[1]} (${formatOdds(bm.spreadJuice?.[1] ?? -110)})`
-                              : "—"}
+                            {bm.spread ? `${bm.spread[1] > 0 ? "+" : ""}${bm.spread[1]} (${formatOdds(bm.spreadJuice?.[1] ?? -110)})` : "—"}
                           </td>
                           <td className="text-right py-2 font-mono">
-                            {bm.total != null
-                              ? `${bm.total.toFixed(1)} (${formatOdds(bm.totalJuice?.[0] ?? -110)})`
-                              : "—"}
+                            {bm.total != null ? `${bm.total.toFixed(1)} (${formatOdds(bm.totalJuice?.[0] ?? -110)})` : "—"}
                           </td>
                         </tr>
                       ))}
@@ -531,26 +468,28 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                 <div className="text-xs text-muted-foreground italic py-3 text-center">
                   Live betting odds not yet available for this matchup.
                   <br />
-                  Check <a href="https://theoddapi.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                  Check{" "}
+                  <a href="https://theoddapi.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                     The Odds API
-                  </a> for current lines.
+                  </a>{" "}
+                  for current lines.
                 </div>
               )}
             </div>
-          </>
+          </CollapsibleSection>
         )}
 
-        {/* KenPom Ratings */}
+        {/* ── KenPom Ratings ────────────────────────────────────── */}
         {team1 && team2 && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                KenPom Ratings
-              </div>
+          <CollapsibleSection title="KenPom Ratings" defaultOpen={false}>
+            <div className="space-y-2 pt-1">
               {(!kp1 && !kp2) ? (
                 <div className="text-xs text-muted-foreground italic py-2">
-                  KenPom data not available for these teams. Visit <a href="https://kenpom.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">kenpom.com</a> for ratings.
+                  KenPom data not available for these teams. Visit{" "}
+                  <a href="https://kenpom.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                    kenpom.com
+                  </a>{" "}
+                  for ratings.
                 </div>
               ) : (
                 <table className="w-full text-sm">
@@ -563,41 +502,33 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-t border-border/50">
-                      <td className="py-2 text-muted-foreground text-xs">Rank</td>
-                      <td className="text-center py-2 font-semibold">{kp1?.rank ?? "-"}</td>
-                      <td className="text-center py-2 text-xs font-semibold text-muted-foreground">Ranking</td>
-                      <td className="text-center py-2 font-semibold">{kp2?.rank ?? "-"}</td>
-                    </tr>
-                    <tr className="border-t border-border/50">
-                      <td className="py-2 text-muted-foreground text-xs">Adj. EM</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp1?.adjEM?.toFixed(1) ?? "-"}</td>
-                      <td className="text-center py-2 text-xs font-semibold text-muted-foreground">Adj. EM</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp2?.adjEM?.toFixed(1) ?? "-"}</td>
-                    </tr>
-                    <tr className="border-t border-border/50">
-                      <td className="py-2 text-muted-foreground text-xs">Adj. Off</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp1?.adjOffense?.toFixed(1) ?? "-"}</td>
-                      <td className="text-center py-2 text-xs font-semibold text-muted-foreground">Adj. Off</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp2?.adjOffense?.toFixed(1) ?? "-"}</td>
-                    </tr>
-                    <tr className="border-t border-border/50">
-                      <td className="py-2 text-muted-foreground text-xs">Adj. Def</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp1?.adjDefense?.toFixed(1) ?? "-"}</td>
-                      <td className="text-center py-2 text-xs font-semibold text-muted-foreground">Adj. Def</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp2?.adjDefense?.toFixed(1) ?? "-"}</td>
-                    </tr>
-                    <tr className="border-t border-border/50">
-                      <td className="py-2 text-muted-foreground text-xs">Tempo</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp1?.tempo?.toFixed(1) ?? "-"}</td>
-                      <td className="text-center py-2 text-xs font-semibold text-muted-foreground">Tempo</td>
-                      <td className="text-center py-2 font-mono font-medium">{kp2?.tempo?.toFixed(1) ?? "-"}</td>
-                    </tr>
+                    {[
+                      { label: "Rank", key: "rank" as const, center: "Ranking" },
+                      { label: "Adj. EM", key: "adjEM" as const, center: "Adj. EM", decimals: 1 },
+                      { label: "Adj. Off", key: "adjOffense" as const, center: "Adj. Off", decimals: 1 },
+                      { label: "Adj. Def", key: "adjDefense" as const, center: "Adj. Def", decimals: 1 },
+                      { label: "Tempo", key: "tempo" as const, center: "Tempo", decimals: 1 },
+                    ].map(({ label, key, center, decimals }) => (
+                      <tr key={key} className="border-t border-border/50">
+                        <td className="py-2 text-muted-foreground text-xs">{label}</td>
+                        <td className="text-center py-2 font-mono font-medium">
+                          {kp1?.[key] != null
+                            ? (decimals ? (kp1[key] as number).toFixed(decimals) : kp1[key])
+                            : "-"}
+                        </td>
+                        <td className="text-center py-2 text-xs font-semibold text-muted-foreground">{center}</td>
+                        <td className="text-center py-2 font-mono font-medium">
+                          {kp2?.[key] != null
+                            ? (decimals ? (kp2[key] as number).toFixed(decimals) : kp2[key])
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               )}
             </div>
-          </>
+          </CollapsibleSection>
         )}
       </DialogContent>
     </Dialog>
