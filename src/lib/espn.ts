@@ -109,8 +109,11 @@ function parseMatchup(event: ESPNEvent): Matchup | null {
 
   for (let i = 0; i < comp.competitors.length && i < 2; i++) {
     const c = comp.competitors[i];
+    // Use location (school name, e.g. "Arizona") or shortDisplayName as fallback.
+    // c.team.name is the mascot only (e.g. "Wildcats") — not suitable for display.
+    const teamName = c.team.location ?? c.team.shortDisplayName ?? c.team.displayName ?? c.team.name;
     teams[i] = {
-      name: c.team.name,
+      name: teamName,
       abbreviation: c.team.abbreviation,
       seed: c.curatedRank?.current ?? 0,
       logo: c.team.logo ?? "",

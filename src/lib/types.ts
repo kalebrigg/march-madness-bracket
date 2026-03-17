@@ -130,7 +130,10 @@ export interface ESPNCompetitor {
   id: string;
   team: {
     id: string;
-    name: string;
+    name: string;           // mascot only, e.g. "Wildcats"
+    displayName?: string;   // full name, e.g. "Arizona Wildcats"
+    location?: string;      // school/city, e.g. "Arizona"
+    shortDisplayName?: string; // e.g. "Arizona"
     abbreviation: string;
     logo: string;
     color?: string;
