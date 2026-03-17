@@ -14,7 +14,30 @@ export default async function Home() {
           <p className="text-sm text-muted-foreground">
             Click any matchup for full details including venue, TV channel, odds, KenPom ratings, and win probability.
           </p>
+
+          {/* Bracket legend */}
+        <div className="flex items-center justify-center gap-4 px-1 pb-3 text-[11px] text-muted-foreground flex-wrap">
+          <span className="font-semibold text-foreground/40 uppercase tracking-wider text-[10px]">Key</span>
+          <span className="flex items-center gap-1.5">
+            <span>⚡</span>
+            <span>Model predicts upset</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span>⚖️</span>
+            <span>Toss-up — too close to call</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
+            <span>Live</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-green-600 font-semibold text-xs">68%</span>
+            <span>Model edge over market</span>
+          </span>
         </div>
+        </div>
+
+        
 
         <Bracket
           tournament={tournament}
