@@ -44,7 +44,7 @@ export function Header() {
             href="https://buymeacoffee.com/kalebrigg"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[#FFDD00] text-[#000000] hover:bg-[#FFDD00]/90 transition-colors no-print"
+            className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[#FFDD00] text-[#000000] hover:bg-[#FFDD00]/90 transition-colors no-print"
           >
             <span>☕</span>
             <span className="hidden md:inline">Buy me a coffee</span>
