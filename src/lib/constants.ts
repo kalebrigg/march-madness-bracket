@@ -153,6 +153,8 @@ export const TEAM_NAME_ALIASES: Record<string, string> = {
   "Prairie View A&M Panthers": "Prairie View A&M",
   // North Dakota State — ESPN uses full name
   "North Dakota State": "North Dakota State",
+  // South Florida — "Bulls" is not in the generic mascot-strip list
+  "South Florida Bulls": "South Florida",
 };
 
 // Tournament date ranges for 2026 (approximate - adjust when actual dates announced)
