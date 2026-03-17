@@ -10,7 +10,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Matchup, Prediction, GameOdds, TeamKenPom } from "@/lib/types";
-import { formatProbability, formatOdds, consensusImpliedProbability, americanToImplied } from "@/lib/odds-utils";
+import {
+  formatProbability,
+  formatOdds,
+  formatSignedPct,
+  consensusImpliedProbability,
+  probabilityToAmericanOdds,
+  averageMoneyline,
+  calcEV,
+  edgeColorClass,
+} from "@/lib/odds-utils";
 import { getTeamKenPom } from "@/lib/kenpom";
 
 interface GameDetailDialogProps {
@@ -173,6 +182,68 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             </div>
           </>
         )}
+
+        {/* Edge & Value Analysis */}
+        {prediction && status === "pre" && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && (() => {
+          const edge1 = prediction.team1WinPct - impliedProbs[0];
+          const edge2 = prediction.team2WinPct - impliedProbs[1];
+          const avgML1 = averageMoneyline(odds.bookmakers, 0);
+          const avgML2 = averageMoneyline(odds.bookmakers, 1);
+          const ev1 = calcEV(prediction.team1WinPct, avgML1);
+          const ev2 = calcEV(prediction.team2WinPct, avgML2);
+          const fair1 = probabilityToAmericanOdds(prediction.team1WinPct);
+          const fair2 = probabilityToAmericanOdds(prediction.team2WinPct);
+
+          return (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Edge &amp; Value
+                </div>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground/70 text-[10px] border-b">
+                      <th className="text-left pb-1.5"></th>
+                      <th className="text-right pb-1.5 font-semibold text-xs text-foreground">{team1.abbreviation}</th>
+                      <th className="text-right pb-1.5 font-semibold text-xs text-foreground">{team2.abbreviation}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Market (vig-free)</td>
+                      <td className="text-right py-1.5 font-mono">{formatProbability(impliedProbs[0])}</td>
+                      <td className="text-right py-1.5 font-mono">{formatProbability(impliedProbs[1])}</td>
+                    </tr>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Model</td>
+                      <td className="text-right py-1.5 font-mono">{formatProbability(prediction.team1WinPct)}</td>
+                      <td className="text-right py-1.5 font-mono">{formatProbability(prediction.team2WinPct)}</td>
+                    </tr>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Edge</td>
+                      <td className={`text-right py-1.5 font-mono ${edgeColorClass(edge1)}`}>{formatSignedPct(edge1)}</td>
+                      <td className={`text-right py-1.5 font-mono ${edgeColorClass(edge2)}`}>{formatSignedPct(edge2)}</td>
+                    </tr>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">Fair odds</td>
+                      <td className="text-right py-1.5 font-mono">{formatOdds(fair1)}</td>
+                      <td className="text-right py-1.5 font-mono">{formatOdds(fair2)}</td>
+                    </tr>
+                    <tr className="border-t border-border/50">
+                      <td className="py-1.5 text-muted-foreground">EV (avg line)</td>
+                      <td className={`text-right py-1.5 font-mono ${edgeColorClass(ev1)}`}>{formatSignedPct(ev1)}</td>
+                      <td className={`text-right py-1.5 font-mono ${edgeColorClass(ev2)}`}>{formatSignedPct(ev2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-[10px] text-muted-foreground/60 pt-0.5">
+                  Edge = model − market. EV per $100 bet at average line across DraftKings, FanDuel &amp; BetMGM.
+                </p>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Odds & Implied Probability */}
         {status === "pre" && (

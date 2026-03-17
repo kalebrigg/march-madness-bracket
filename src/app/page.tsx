@@ -57,6 +57,8 @@ async function getTournamentData() {
             bookmakers: gameOdds.bookmakers.map((bm) => ({
               ...bm,
               moneyline: [bm.moneyline[1], bm.moneyline[0]] as [number, number],
+              spread: bm.spread ? [bm.spread[1], bm.spread[0]] as [number, number] : undefined,
+              spreadJuice: bm.spreadJuice ? [bm.spreadJuice[1], bm.spreadJuice[0]] as [number, number] : undefined,
             })),
             impliedProbability: gameOdds.impliedProbability
               ? [gameOdds.impliedProbability[1], gameOdds.impliedProbability[0]]
