@@ -35,6 +35,14 @@ export const ROUND_NAMES: Record<number, string> = {
 
 export const REGION_NAMES = ["South", "East", "Midwest", "West"];
 
+/**
+ * The display order of regions in the bracket view.
+ * Left side (index 0-1): East top, South bottom.
+ * Right side (index 2-3): West top, Midwest bottom.
+ * This matches the official NCAA bracket layout.
+ */
+export const REGION_ORDER = ["East", "South", "West", "Midwest"];
+
 // Team name aliases: Maps Odds API names → ESPN names
 // This handles the most common discrepancies
 export const TEAM_NAME_ALIASES: Record<string, string> = {

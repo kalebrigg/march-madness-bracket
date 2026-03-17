@@ -8,7 +8,7 @@ import type {
   Region,
   Round,
 } from "./types";
-import { TOURNAMENT_DATES_2026, ROUND_NAMES, BRACKET_SEED_ORDER } from "./constants";
+import { TOURNAMENT_DATES_2026, ROUND_NAMES, BRACKET_SEED_ORDER, REGION_ORDER } from "./constants";
 
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball";
 
@@ -151,6 +151,57 @@ function parseMatchup(event: ESPNEvent): Matchup | null {
   };
 }
 
+// ─────────────────────── bracket position helpers ────────────────────────
+
+/**
+ * Returns the standard bracket position (0-7) for a Round 1 game by matching
+ * the teams' seeds to BRACKET_SEED_ORDER.
+ * Play-in TBD teams have seed 99; we match by the known team's seed.
+ */
+function getRound1Position(matchup: Matchup): number {
+  const s1 = matchup.teams[0]?.seed ?? 99;
+  const s2 = matchup.teams[1]?.seed ?? 99;
+  for (let i = 0; i < BRACKET_SEED_ORDER.length; i++) {
+    const [a, b] = BRACKET_SEED_ORDER[i];
+    if ((s1 === a && s2 === b) || (s1 === b && s2 === a)) return i;
+    if (s1 === 99 && (s2 === a || s2 === b)) return i;
+    if (s2 === 99 && (s1 === a || s1 === b)) return i;
+  }
+  return 999;
+}
+
+/**
+ * Each seed belongs to one of four bracket quadrants (0-3), representing which
+ * first-round "slot" the team came from. Used to order Round 2 games.
+ *
+ * Quadrant 0: seeds 1,16,8,9   (top-top)
+ * Quadrant 1: seeds 5,12,4,13  (top-bottom)
+ * Quadrant 2: seeds 6,11,3,14  (bottom-top)
+ * Quadrant 3: seeds 7,10,2,15  (bottom-bottom)
+ */
+function seedQuadrant(seed: number): number {
+  if ([1, 16, 8, 9].includes(seed)) return 0;
+  if ([5, 12, 4, 13].includes(seed)) return 1;
+  if ([6, 11, 3, 14].includes(seed)) return 2;
+  if ([7, 10, 2, 15].includes(seed)) return 3;
+  return 0;
+}
+
+/** Which half of the bracket (0 = top, 1 = bottom) a seed belongs to. */
+function seedHalf(seed: number): number {
+  return [1, 16, 8, 9, 5, 12, 4, 13].includes(seed) ? 0 : 1;
+}
+
+function getBracketPosition(matchup: Matchup, roundNumber: number): number {
+  if (roundNumber === 1) return getRound1Position(matchup);
+  const s1 = matchup.teams[0]?.seed ?? 0;
+  const s2 = matchup.teams[1]?.seed ?? 0;
+  const refSeed = s1 > 0 ? s1 : s2; // pick whichever is non-zero
+  if (roundNumber === 2) return seedQuadrant(refSeed);
+  if (roundNumber === 3) return seedHalf(refSeed);
+  return 0; // Elite Eight: only one game
+}
+
 /**
  * Build a full Tournament structure from ESPN events.
  * Creates placeholder matchups for future rounds that haven't been scheduled yet.
@@ -176,7 +227,7 @@ export function buildTournament(events: ESPNEvent[]): Tournament {
     }
   }
 
-  // Build regions with rounds
+  // Build regions with rounds — sorted into correct bracket order
   const regions: Region[] = Object.entries(regionMap).map(([name, games]) => {
     const roundMap: Record<number, Matchup[]> = {};
     for (const g of games) {
@@ -190,7 +241,8 @@ export function buildTournament(events: ESPNEvent[]): Tournament {
       const expectedGames = r === 1 ? 8 : r === 2 ? 4 : r === 3 ? 2 : 1;
       const existingGames = roundMap[r] ?? [];
 
-      // Assign bracket positions
+      // Sort games into the standard bracket seed order, then assign positions
+      existingGames.sort((a, b) => getBracketPosition(a, r) - getBracketPosition(b, r));
       existingGames.forEach((g, i) => {
         g.bracketPosition = i;
       });
@@ -211,9 +263,17 @@ export function buildTournament(events: ESPNEvent[]): Tournament {
     return { name, rounds };
   });
 
+  // Sort regions into official bracket order: East, South, West, Midwest
+  // (Bracket.tsx displays index 0-1 on the left, index 2-3 on the right)
+  regions.sort((a, b) => {
+    const ai = REGION_ORDER.indexOf(a.name);
+    const bi = REGION_ORDER.indexOf(b.name);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
   // If we have no region data yet, create placeholder regions
   if (regions.length === 0) {
-    const placeholderRegions = ["South", "East", "Midwest", "West"];
+    const placeholderRegions = REGION_ORDER;
     for (const name of placeholderRegions) {
       const rounds: Round[] = [];
       for (let r = 1; r <= 4; r++) {
