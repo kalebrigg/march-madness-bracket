@@ -143,12 +143,19 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         </div>
 
         {/* Win Probability */}
-        {prediction && status === "pre" && team1 && team2 && (
+        {prediction && team1 && team2 && (
           <>
             <Separator />
             <div className="space-y-3">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Win Probability (Model)
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Win Probability (Model)
+                </div>
+                {status !== "pre" && (
+                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
+                    Pre-game estimate
+                  </span>
+                )}
               </div>
 
               {/* Probability bar */}
@@ -193,7 +200,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         )}
 
         {/* KenPom Game Projection */}
-        {status === "pre" && team1 && team2 && kp1 && kp2 &&
+        {team1 && team2 && kp1 && kp2 &&
           kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
           kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
           const proj = calcKenPomProjection(
@@ -214,22 +221,56 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             <>
               <Separator />
               <div className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  KenPom Projection
+                <div className="flex items-center gap-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    KenPom Projection
+                  </div>
+                  {status !== "pre" && (
+                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
+                      Pre-game estimate
+                    </span>
+                  )}
                 </div>
 
-                {/* Projected score banner */}
-                <div className="flex items-center justify-between bg-muted/40 rounded-md px-3 py-2">
-                  <div className="text-center flex-1">
-                    <div className="text-xl font-bold font-mono">{formatScore(proj.ptsA)}</div>
-                    <div className="text-[10px] text-muted-foreground">{team1.abbreviation}</div>
+                {/* Projected score banner — show vs actual if game finished */}
+                {status === "post" && score ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center justify-between bg-muted/40 rounded-md px-3 py-2">
+                      <div className="text-center flex-1">
+                        <div className="text-xl font-bold font-mono">{formatScore(proj.ptsA)}</div>
+                        <div className="text-[10px] text-muted-foreground">{team1.abbreviation}</div>
+                      </div>
+                      <div className="text-muted-foreground text-[10px] font-semibold px-2">PROJ</div>
+                      <div className="text-center flex-1">
+                        <div className="text-xl font-bold font-mono">{formatScore(proj.ptsB)}</div>
+                        <div className="text-[10px] text-muted-foreground">{team2.abbreviation}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between bg-green-500/10 border border-green-500/20 rounded-md px-3 py-2">
+                      <div className="text-center flex-1">
+                        <div className={`text-xl font-bold font-mono ${winner === 0 ? "text-green-600" : ""}`}>{score[0]}</div>
+                        <div className="text-[10px] text-muted-foreground">{team1.abbreviation}</div>
+                      </div>
+                      <div className="text-muted-foreground text-[10px] font-semibold px-2">FINAL</div>
+                      <div className="text-center flex-1">
+                        <div className={`text-xl font-bold font-mono ${winner === 1 ? "text-green-600" : ""}`}>{score[1]}</div>
+                        <div className="text-[10px] text-muted-foreground">{team2.abbreviation}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-muted-foreground text-xs font-semibold px-3">PROJ</div>
-                  <div className="text-center flex-1">
-                    <div className="text-xl font-bold font-mono">{formatScore(proj.ptsB)}</div>
-                    <div className="text-[10px] text-muted-foreground">{team2.abbreviation}</div>
+                ) : (
+                  <div className="flex items-center justify-between bg-muted/40 rounded-md px-3 py-2">
+                    <div className="text-center flex-1">
+                      <div className="text-xl font-bold font-mono">{formatScore(proj.ptsA)}</div>
+                      <div className="text-[10px] text-muted-foreground">{team1.abbreviation}</div>
+                    </div>
+                    <div className="text-muted-foreground text-xs font-semibold px-3">PROJ</div>
+                    <div className="text-center flex-1">
+                      <div className="text-xl font-bold font-mono">{formatScore(proj.ptsB)}</div>
+                      <div className="text-[10px] text-muted-foreground">{team2.abbreviation}</div>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <table className="w-full text-xs">
                   <tbody>
@@ -295,7 +336,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         })()}
 
         {/* Edge & Value Analysis */}
-        {prediction && status === "pre" && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && (() => {
+        {prediction && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && (() => {
           const edge1 = prediction.team1WinPct - impliedProbs[0];
           const edge2 = prediction.team2WinPct - impliedProbs[1];
           const avgML1 = averageMoneyline(odds.bookmakers, 0);
@@ -309,8 +350,15 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             <>
               <Separator />
               <div className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Edge &amp; Value
+                <div className="flex items-center gap-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Edge &amp; Value
+                  </div>
+                  {status !== "pre" && (
+                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
+                      Pre-game lines
+                    </span>
+                  )}
                 </div>
                 <table className="w-full text-xs">
                   <thead>
@@ -357,12 +405,19 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         })()}
 
         {/* Odds & Implied Probability */}
-        {status === "pre" && (
+        {(odds || status === "pre") && (
           <>
             <Separator />
             <div className="space-y-3">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Betting Odds
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Betting Odds
+                </div>
+                {status !== "pre" && (
+                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-medium">
+                    Pre-game lines
+                  </span>
+                )}
               </div>
 
               {odds && odds.bookmakers && odds.bookmakers.length > 0 ? (
@@ -453,7 +508,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
         )}
 
         {/* KenPom Ratings */}
-        {team1 && team2 && status === "pre" && (
+        {team1 && team2 && (
           <>
             <Separator />
             <div className="space-y-2">
