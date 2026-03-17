@@ -19,7 +19,7 @@ export function Round({
   onMatchClick,
 }: RoundProps) {
   return (
-    <div className="flex flex-col justify-around min-w-[150px]">
+    <div className="flex flex-col justify-around w-[165px] shrink-0">
       <div className="text-[10px] text-center text-muted-foreground font-semibold uppercase tracking-wider mb-1">
         {roundName}
       </div>

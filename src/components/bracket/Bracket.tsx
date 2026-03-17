@@ -60,7 +60,7 @@ export function Bracket({ tournament, predictions, odds, kenPomData }: BracketPr
       </div>
 
       {/* Desktop: Full horizontal bracket */}
-      <div className="hidden lg:flex items-stretch gap-3 overflow-x-auto pb-4 bracket-print-container">
+      <div className="hidden lg:flex justify-center items-stretch gap-3 overflow-x-auto pb-4 bracket-print-container">
         {/* Left side regions */}
         <div className="flex flex-col gap-6">
           {leftRegions.map((region) => (
