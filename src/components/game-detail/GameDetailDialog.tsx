@@ -22,6 +22,7 @@ import {
 } from "@/lib/odds-utils";
 import { getTeamKenPom } from "@/lib/kenpom";
 import { calcKenPomProjection, formatScore, formatSpread } from "@/lib/kenpom-model";
+import { MonteCarloSection } from "./MonteCarloSection";
 
 interface GameDetailDialogProps {
   matchup: Matchup | null;
@@ -331,6 +332,38 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                   Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line. Note: the model tends to project 5–15 pts higher scoring than actual tournament games (efficiency ratings are season averages vs. average opponents; tournament defensive intensity is higher).
                 </p>
               </div>
+            </>
+          );
+        })()}
+
+        {/* Monte Carlo Simulation */}
+        {team1 && team2 && kp1 && kp2 &&
+          kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
+          kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
+          const proj = calcKenPomProjection(
+            kp1.tempo, kp1.adjOffense, kp1.adjDefense,
+            kp2.tempo, kp2.adjOffense, kp2.adjDefense
+          );
+          const bookSpreadValues = odds?.bookmakers
+            .filter((bm) => bm.spread !== undefined)
+            .map((bm) => bm.spread![0]) ?? [];
+          const avgBookSpread = bookSpreadValues.length > 0
+            ? bookSpreadValues.reduce((a, b) => a + b, 0) / bookSpreadValues.length
+            : null;
+          const ouLine = odds?.consensusTotal ?? null;
+
+          return (
+            <>
+              <Separator />
+              <MonteCarloSection
+                projSpread={proj.spread}
+                projTotal={proj.total}
+                bookSpread={avgBookSpread}
+                ouLine={ouLine}
+                team1Abbr={team1.abbreviation}
+                team2Abbr={team2.abbreviation}
+                isPreGame={status === "pre"}
+              />
             </>
           );
         })()}
