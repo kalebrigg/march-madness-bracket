@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "./ThemeToggle";
 import { PrintButton } from "./PrintButton";
+import { RefreshButton } from "./RefreshButton";
 
 export function Header() {
   return (
@@ -49,6 +50,7 @@ export function Header() {
             <span>🍕</span>
             <span className="hidden md:inline">Buy me a pizza</span>
           </a>
+          <RefreshButton />
           <PrintButton />
           <ThemeToggle />
         </div>

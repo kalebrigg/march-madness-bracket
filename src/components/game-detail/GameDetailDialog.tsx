@@ -67,6 +67,8 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
 
   const impliedProbs = odds ? consensusImpliedProbability(odds.bookmakers) : null;
 
+  const isLive = status === "in";
+
   return (
     <Dialog open={!!matchup} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -165,8 +167,45 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           </div>
         </CollapsibleSection>
 
-        {/* ── Win Probability ───────────────────────────────────── */}
-        {prediction && team1 && team2 && (
+        {/* ── Live KenPom Win Probability (shown only during live games) ── */}
+        {isLive && team1 && team2 && kp1 && kp2 &&
+          kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
+          kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
+          const proj = calcKenPomProjection(
+            kp1.tempo, kp1.adjOffense, kp1.adjDefense,
+            kp2.tempo, kp2.adjOffense, kp2.adjDefense
+          );
+          return (
+            <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-foreground/70 uppercase tracking-wider text-[10px]">KenPom Win Probability</span>
+                <span className="text-[10px] text-muted-foreground">Pre-game efficiency model</span>
+              </div>
+              <div className="flex h-6 rounded-full overflow-hidden text-[10px] font-bold text-white">
+                <div
+                  className="flex items-center justify-center transition-all"
+                  style={{ width: `${proj.winProbA * 100}%`, backgroundColor: team1.color }}
+                >
+                  {Math.round(proj.winProbA * 100)}%
+                </div>
+                <div
+                  className="flex items-center justify-center transition-all"
+                  style={{ width: `${proj.winProbB * 100}%`, backgroundColor: team2.color }}
+                >
+                  {Math.round(proj.winProbB * 100)}%
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{team1.abbreviation}</span>
+                <span className="text-[11px]">KenPom efficiency model</span>
+                <span>{team2.abbreviation}</span>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── Win Probability (pre/post only — hidden during live games) ── */}
+        {prediction && team1 && team2 && !isLive && (
           <CollapsibleSection
             title="Win Probability"
             badge={status !== "pre" ? <PreGameBadge /> : undefined}
@@ -222,7 +261,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           return (
             <CollapsibleSection
               title="KenPom Projection"
-              badge={status !== "pre" ? <PreGameBadge /> : undefined}
+              badge={status === "post" ? <PreGameBadge /> : undefined}
               defaultOpen={true}
               {...sectionProps}
             >
@@ -340,7 +379,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           return (
             <CollapsibleSection
               title="Monte Carlo Simulation"
-              badge={status !== "pre" ? <PreGameBadge /> : undefined}
+              badge={status === "post" ? <PreGameBadge /> : undefined}
               defaultOpen={false}
               {...sectionProps}
             >
@@ -359,8 +398,8 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           );
         })()}
 
-        {/* ── Edge & Value ──────────────────────────────────────── */}
-        {prediction && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && (() => {
+        {/* ── Edge & Value (pre/post only — hidden during live games) ── */}
+        {prediction && team1 && team2 && odds && odds.bookmakers.length > 0 && impliedProbs && !isLive && (() => {
           const edge1 = prediction.team1WinPct - impliedProbs[0];
           const edge2 = prediction.team2WinPct - impliedProbs[1];
           const avgML1 = averageMoneyline(odds.bookmakers, 0);
@@ -422,11 +461,11 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           );
         })()}
 
-        {/* ── Betting Odds ──────────────────────────────────────── */}
+        {/* ── Betting Odds / Live Odds ───────────────────────────── */}
         {(odds || status === "pre") && (
           <CollapsibleSection
-            title="Betting Odds"
-            badge={status !== "pre" ? <PreGameBadge label="Pre-game lines" /> : undefined}
+            title={isLive ? "Live Odds" : "Betting Odds"}
+            badge={status === "post" ? <PreGameBadge label="Pre-game lines" /> : undefined}
             defaultOpen={true}
             {...sectionProps}
           >
