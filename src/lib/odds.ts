@@ -14,7 +14,7 @@ export async function fetchOdds(): Promise<OddsAPIResponse[] | null> {
 
   try {
     const url = `${ODDS_API_BASE}/odds?regions=us&markets=h2h,spreads,totals&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm&apiKey=${apiKey}`;
-    const res = await fetch(url, { next: { revalidate: 1800 } }); // 30 min cache
+    const res = await fetch(url, { cache: "no-store" }); // always fresh on page load / manual refresh
     if (!res.ok) {
       console.error(`Odds API error: ${res.status}`);
       return null;
