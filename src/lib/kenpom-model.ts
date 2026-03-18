@@ -1,23 +1,31 @@
 /**
  * KenPom-based game projection model.
  *
- * Formulas from: Expected Margin = (AdjEM_A − AdjEM_B) × (ExpPoss / 100)
+ * Constants:
+ *   AVG_ORTG = 119  — average adjusted offensive rating for NCAA tournament teams
+ *   AVG_DRTG = 102  — average adjusted defensive rating for NCAA tournament teams
+ *   TOURNEY_FACTOR = 0.97 — tournament regression (tighter defense, elimination pressure)
  *
- *   ExpPoss   = 0.55 × MIN(AdjT_A, AdjT_B) + 0.45 × MAX(AdjT_A, AdjT_B)
- *   Eff_A     = ORtg_A × (DRtg_B / 100)   — A's offense vs B's defense
- *   Eff_B     = ORtg_B × (DRtg_A / 100)   — B's offense vs A's defense
- *   Pts_A     = (Eff_A / 100) × ExpPoss
- *   Pts_B     = (Eff_B / 100) × ExpPoss
- *   Spread    = Pts_A − Pts_B              — positive = A favored
- *   Total     = Pts_A + Pts_B
- *   WinProb_A = normCDF(Spread / 11)       — std dev ≈ 11 pts for college basketball
+ * Formulas:
+ *   Poss    = 0.60 × MIN(Tempo_A, Tempo_B) + 0.40 × MAX(Tempo_A, Tempo_B)
+ *   Eff_A   = (119 × ((ORtg_A / 119) − (1 − (DRtg_B / 102)))) × 0.97
+ *   Eff_B   = (119 × ((ORtg_B / 119) − (1 − (DRtg_A / 102)))) × 0.97
+ *   Pts_A   = (Eff_A / 100) × Poss
+ *   Pts_B   = (Eff_B / 100) × Poss
+ *   Spread  = Pts_A − Pts_B   (signed: positive = A favored)
+ *   Total   = Pts_A + Pts_B
+ *   Win%_A  = normCDF(Spread / 11)   — std dev ≈ 11 pts in college basketball
  */
+
+const AVG_ORTG = 119;  // Tournament-average adjusted offensive rating
+const AVG_DRTG = 102;  // Tournament-average adjusted defensive rating
+const TOURNEY_FACTOR = 0.97; // 3% tournament regression factor
 
 export interface KenPomProjection {
   poss: number;      // Expected possessions
   ptsA: number;      // Projected points for team A (team1)
   ptsB: number;      // Projected points for team B (team2)
-  spread: number;    // Pts_A − Pts_B  (positive = A favored)
+  spread: number;    // Pts_A − Pts_B  (positive = A favored, negative = B favored)
   total: number;     // Pts_A + Pts_B
   winProbA: number;  // 0–1 win probability for team A
   winProbB: number;  // 0–1 win probability for team B
@@ -62,22 +70,24 @@ export function calcKenPomProjection(
   ortgB: number,
   drtgB: number
 ): KenPomProjection {
-  // Pace: weighted toward the slower team
+  // Pace: weighted 60% toward the slower team, 40% toward the faster
   const poss =
-    0.55 * Math.min(tempoA, tempoB) + 0.45 * Math.max(tempoA, tempoB);
+    0.60 * Math.min(tempoA, tempoB) + 0.40 * Math.max(tempoA, tempoB);
 
-  // Each team's offensive efficiency adjusted for opponent's defense
-  const effA = ortgA * (drtgB / 100);
-  const effB = ortgB * (drtgA / 100);
+  // Tournament-normalized offensive efficiency adjusted for opponent's defense,
+  // with a 3% tournament regression factor applied to both teams
+  const effA = (AVG_ORTG * ((ortgA / AVG_ORTG) - (1 - (drtgB / AVG_DRTG)))) * TOURNEY_FACTOR;
+  const effB = (AVG_ORTG * ((ortgB / AVG_ORTG) - (1 - (drtgA / AVG_DRTG)))) * TOURNEY_FACTOR;
 
   // Projected points
   const ptsA = (effA / 100) * poss;
   const ptsB = (effB / 100) * poss;
 
+  // Signed spread: positive = A is projected winner
   const spread = ptsA - ptsB;
   const total  = ptsA + ptsB;
 
-  // Win probability via normal distribution (std dev ≈ 11 points in CBB)
+  // Win probability via standard normal CDF (std dev ≈ 11 points in CBB)
   const winProbA = normCDF(spread / 11);
   const winProbB = 1 - winProbA;
 

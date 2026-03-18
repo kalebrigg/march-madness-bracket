@@ -139,29 +139,29 @@ export default function AboutPage() {
         <Section title="📐 The KenPom Game Projection (Spread & Total)">
           <p>
             Inside each game modal, you&apos;ll see a <strong>KenPom Projection</strong> section that estimates
-            the final score, point spread, and total. These formulas simulate how two teams&apos; offenses
-            perform against each other&apos;s defenses at their expected pace.
+            the final score, point spread, and total. The model is calibrated to tournament-level averages
+            and includes a regression factor to account for the tighter, higher-stakes play in March.
           </p>
 
           <div className="mt-5 space-y-4">
             <FormulaBlock title="Step 1 — Expected Possessions">
-              {"Poss = 0.55 × MIN(Tempo_A, Tempo_B) + 0.45 × MAX(Tempo_A, Tempo_B)"}
+              {"Poss = 0.60 × MIN(Tempo_A, Tempo_B) + 0.40 × MAX(Tempo_A, Tempo_B)"}
               <p className="mt-2 text-sm text-muted-foreground">
-                Pace is weighted toward the <em>slower</em> team. In real games, a slow-paced team drags a
-                fast-paced team down more than the reverse. <strong>Tempo</strong> = KenPom adjusted
-                possessions per 40 minutes of game time.
+                Pace is weighted 60% toward the <em>slower</em> team. Slow-paced teams consistently drag
+                faster opponents down more than the reverse — a slow team&apos;s style imposes itself.{" "}
+                <strong>Tempo</strong> = KenPom adjusted possessions per 40 minutes.
               </p>
             </FormulaBlock>
 
-            <FormulaBlock title="Step 2 — Adjusted Offensive Efficiency">
-              {"Eff_A = ORtg_A × (DRtg_B / 100)"}
+            <FormulaBlock title="Step 2 — Tournament-Normalized Efficiency">
+              {"Eff_A = (119 × ((ORtg_A / 119) − (1 − (DRtg_B / 102)))) × 0.97\nEff_B = (119 × ((ORtg_B / 119) − (1 − (DRtg_A / 102)))) × 0.97"}
               <p className="mt-2 text-sm text-muted-foreground">
-                Team A&apos;s offense facing Team B&apos;s defense. <strong>ORtg</strong> is points scored
-                per 100 possessions against an average opponent. <strong>DRtg</strong> is points allowed
-                per 100 possessions against an average opponent.
-                When DRtg_B = 100 (average defense), A scores at their normal rate.
-                When DRtg_B &lt; 100 (elite defense like 89), A scores less.
-                When DRtg_B &gt; 100 (weak defense like 106), A scores more.
+                This formula normalizes each team&apos;s offense and defense against{" "}
+                <strong>tournament-level averages</strong> (ORtg avg = 119, DRtg avg = 102) rather than
+                the full D1 average. This corrects for the fact that all 68 tournament teams are
+                above-average — using D1 averages would over-inflate scoring for both sides.
+                The <strong>0.97 factor</strong> applies a 3% tournament regression, reflecting the
+                tighter defense and elimination-game pressure typical of March games.
               </p>
             </FormulaBlock>
 
@@ -172,29 +172,12 @@ export default function AboutPage() {
             <FormulaBlock title="Step 4 — Win Probability from Spread">
               {"Win%_A = NormalCDF(Spread / 11)"}
               <p className="mt-2 text-sm text-muted-foreground">
-                The spread is divided by 11 — the approximate standard deviation of college basketball game
-                outcomes. This says: even if Team A is a 10-point favorite on paper, there is still significant
-                random variance (hot shooting, foul trouble, officiating) that can change the outcome. Dividing
-                by this number converts the expected margin into a realistic win probability using the normal
-                (bell curve) distribution.
+                The signed spread is divided by 11 — the approximate standard deviation of college
+                basketball outcomes. Even a 10-point favorite has real variance: hot shooting, foul trouble,
+                officiating. Dividing by this converts the expected margin into a realistic win probability
+                using the normal (bell curve) distribution.
               </p>
             </FormulaBlock>
-          </div>
-
-          <div className="mt-5 p-4 bg-card border border-l-4 border-l-yellow-500 rounded-lg text-sm">
-            <p className="font-semibold text-foreground mb-1">
-              ⚠️ Why Projected Totals Run High
-            </p>
-            <p className="text-muted-foreground">
-              The efficiency model consistently projects 5–15 points higher scoring than actual tournament
-              game totals. This happens because KenPom ratings are calibrated against a full season of
-              opponents — many of them weaker teams. When two above-average offenses play each other with
-              imperfect defenses, the multiplicative formula slightly inflates both teams&apos; scoring.
-              Tournament games also tend to be more defensive than regular-season games due to the
-              elimination pressure. The <strong>projected spread is more reliable</strong> since both
-              scores inflate roughly equally — the differential (spread) is accurate. We show the
-              Model vs. O/U as a data point but do not make lean recommendations on totals.
-            </p>
           </div>
         </Section>
 

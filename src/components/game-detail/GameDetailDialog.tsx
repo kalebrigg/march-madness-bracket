@@ -327,7 +327,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                   </tbody>
                 </table>
                 <p className="text-[10px] text-muted-foreground/60 pt-0.5">
-                  Pace-adjusted efficiency model. Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line. Note: the model tends to project 5–15 pts higher scoring than actual tournament games.
+                  Tournament-normalized efficiency model (avg ORtg 119 / avg DRtg 102 / 0.97 regression). Spread vs. Book = positive means model has {team1.abbreviation} favored by more than the line.
                 </p>
               </div>
             </CollapsibleSection>
