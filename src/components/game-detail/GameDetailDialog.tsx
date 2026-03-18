@@ -212,13 +212,25 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
             kp1.tempo, kp1.adjOffense, kp1.adjDefense,
             kp2.tempo, kp2.adjOffense, kp2.adjDefense
           );
+          // avgBookSpread: standard notation for team1 (negative = team1 is favorite).
+          // We use moneyline direction to validate and correct the spread sign, guarding
+          // against team-order mismatches between the Odds API and ESPN.
           const bookSpreadValues = odds?.bookmakers
             .filter((bm) => bm.spread !== undefined)
-            .map((bm) => bm.spread![0]) ?? [];
+            .map((bm) => {
+              const s = bm.spread![0];
+              const team1Favored = bm.moneyline[0] < bm.moneyline[1];
+              // Standard notation: team1 favorite → spread should be negative.
+              // If sign is inverted (alignment bug), flip it.
+              const wrongSign = team1Favored ? s > 0 : s < 0;
+              return wrongSign ? -s : s;
+            }) ?? [];
           const avgBookSpread = bookSpreadValues.length > 0
             ? bookSpreadValues.reduce((a, b) => a + b, 0) / bookSpreadValues.length
             : null;
-          const spreadDiff = avgBookSpread !== null ? proj.spread - (-avgBookSpread) : null;
+          // Convert to "team1 wins by X" for comparison with proj.spread (positive = team1 favored)
+          const bookMargin = avgBookSpread !== null ? -avgBookSpread : null;
+          const spreadDiff = bookMargin !== null ? proj.spread - bookMargin : null;
 
           return (
             <CollapsibleSection
@@ -277,7 +289,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                       <td className="py-1.5 text-muted-foreground">Proj. Spread</td>
                       <td className="text-right py-1.5 font-mono">{team1.abbreviation} {formatSpread(proj.spread)}</td>
                       <td className="text-right py-1.5 text-muted-foreground/70">
-                        {avgBookSpread !== null ? `book: ${avgBookSpread > 0 ? "+" : ""}${avgBookSpread.toFixed(1)}` : ""}
+                        {bookMargin !== null ? `book: ${bookMargin > 0 ? "+" : ""}${bookMargin.toFixed(1)}` : ""}
                       </td>
                     </tr>
                     {spreadDiff !== null && (
@@ -332,10 +344,17 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           );
           const bookSpreadValues = odds?.bookmakers
             .filter((bm) => bm.spread !== undefined)
-            .map((bm) => bm.spread![0]) ?? [];
+            .map((bm) => {
+              const s = bm.spread![0];
+              const team1Favored = bm.moneyline[0] < bm.moneyline[1];
+              const wrongSign = team1Favored ? s > 0 : s < 0;
+              return wrongSign ? -s : s; // standard notation: team1 favorite = negative
+            }) ?? [];
+          // avgBookSpread in standard notation → bookMargin in "team1 wins by X" convention
           const avgBookSpread = bookSpreadValues.length > 0
             ? bookSpreadValues.reduce((a, b) => a + b, 0) / bookSpreadValues.length
             : null;
+          const bookMarginMC = avgBookSpread !== null ? -avgBookSpread : null;
           const ouLine = odds?.consensusTotal ?? null;
 
           return (
@@ -348,7 +367,7 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
                 <MonteCarloSection
                   projSpread={proj.spread}
                   projTotal={proj.total}
-                  bookSpread={avgBookSpread}
+                  bookSpread={bookMarginMC}
                   ouLine={ouLine}
                   team1Abbr={team1.abbreviation}
                   team2Abbr={team2.abbreviation}
