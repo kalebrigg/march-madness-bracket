@@ -39,38 +39,43 @@ export function Bracket({ tournament, predictions, odds, kenPomData }: BracketPr
       )}
 
       {/* Desktop: Full horizontal bracket */}
-      <div className="hidden lg:flex justify-center items-stretch gap-3 overflow-x-auto pb-4 bracket-print-container">
-        {/* Left side regions */}
-        <div className="flex flex-col gap-6">
-          {leftRegions.map((region) => (
-            <Region
-              key={region.name}
-              region={region}
-              predictions={predictions}
-              onMatchClick={handleMatchClick}
-            />
-          ))}
-        </div>
+      {/* Outer div scrolls; inner div is the flex layout centered via mx-auto.
+          Keeping justify-center on the same element as overflow-x-auto clips
+          the left side and prevents scrolling back — so they must be separated. */}
+      <div className="hidden lg:block overflow-x-auto pb-4 bracket-print-container">
+        <div className="flex items-stretch gap-3 mx-auto w-max">
+          {/* Left side regions */}
+          <div className="flex flex-col gap-6">
+            {leftRegions.map((region) => (
+              <Region
+                key={region.name}
+                region={region}
+                predictions={predictions}
+                onMatchClick={handleMatchClick}
+              />
+            ))}
+          </div>
 
-        {/* Final Four center */}
-        <FinalFour
-          finalFourGames={tournament.finalFour}
-          championship={tournament.championship}
-          predictions={predictions}
-          onMatchClick={handleMatchClick}
-        />
+          {/* Final Four center */}
+          <FinalFour
+            finalFourGames={tournament.finalFour}
+            championship={tournament.championship}
+            predictions={predictions}
+            onMatchClick={handleMatchClick}
+          />
 
-        {/* Right side regions (reversed) */}
-        <div className="flex flex-col gap-6">
-          {rightRegions.map((region) => (
-            <Region
-              key={region.name}
-              region={region}
-              predictions={predictions}
-              onMatchClick={handleMatchClick}
-              reverse
-            />
-          ))}
+          {/* Right side regions (reversed) */}
+          <div className="flex flex-col gap-6">
+            {rightRegions.map((region) => (
+              <Region
+                key={region.name}
+                region={region}
+                predictions={predictions}
+                onMatchClick={handleMatchClick}
+                reverse
+              />
+            ))}
+          </div>
         </div>
       </div>
 
