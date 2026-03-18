@@ -51,7 +51,7 @@ export default function AboutPage() {
               KenPom (kenpom.com) is widely considered the gold standard for college basketball analytics. Their
               ratings represent how efficiently a team scores and defends per 100 possessions, adjusted for the
               strength of every opponent they faced all season. We use the 2025–26 season ratings for all
-              tournament teams, including each team&apos;s <strong>luck</strong> metric (see below).
+              tournament teams.
             </Item>
           </ul>
         </Section>
@@ -70,9 +70,9 @@ export default function AboutPage() {
               When all three data sources are available, we blend:
               <ul className="mt-2 ml-4 space-y-1 list-disc text-sm">
                 <li>
-                  <strong>55% luck-adjusted KenPom efficiency model</strong> — the most predictive single
-                  factor for college basketball outcomes. KenPom win probability is adjusted for each
-                  team&apos;s luck before blending (see Luck Adjustment below).
+                  <strong>55% KenPom efficiency model</strong> — the most predictive single factor for college
+                  basketball outcomes, measuring how efficiently each team scores and defends per 100 possessions
+                  against tournament-caliber opponents.
                 </li>
                 <li>
                   <strong>35% betting market implied probability</strong> — markets incorporate injury news,
@@ -87,8 +87,8 @@ export default function AboutPage() {
               </ul>
             </ModelTier>
             <ModelTier badge="Tier 2" label="KenPom + Seed (65 / 35)" color="blue">
-              When odds aren&apos;t available yet (no line opened), we use 65% luck-adjusted KenPom efficiency
-              win probability + 35% historical seed win rates.
+              When odds aren&apos;t available yet (no line opened), we use 65% KenPom efficiency win probability
+              + 35% historical seed win rates.
             </ModelTier>
             <ModelTier badge="Tier 3" label="Odds + Seed (75 / 25)" color="yellow">
               When KenPom data isn&apos;t available for a team (rare), we use 75% pre-game betting market
@@ -99,39 +99,6 @@ export default function AboutPage() {
               For first-round games these come from actual 40-year tournament data. For later rounds, we use a
               logistic curve calibrated to historical performance.
             </ModelTier>
-          </div>
-        </Section>
-
-        <Divider />
-
-        {/* Luck Adjustment */}
-        <Section title="🍀 KenPom Luck Adjustment">
-          <p>
-            Before blending KenPom&apos;s efficiency-based win probability into the model, we apply a
-            <strong> luck adjustment</strong>. KenPom&apos;s luck metric measures how much a team
-            over- or under-performed their efficiency-implied record due to the outcomes of close games.
-          </p>
-          <ul className="mt-3 space-y-2 text-sm ml-4 list-disc">
-            <li>
-              A <strong>lucky team</strong> (positive luck) won more close games than their underlying
-              efficiency deserved — a pattern that tends to <em>regress</em> in tournament play where
-              efficiency more consistently determines outcomes.
-            </li>
-            <li>
-              An <strong>unlucky team</strong> (negative luck) lost more close games than expected — meaning
-              their record understates their actual quality.
-            </li>
-          </ul>
-
-          <div className="mt-4">
-            <FormulaBlock title="Luck Adjustment Formula">
-              {"luck_diff  = luck_A − luck_B\nkp_adjusted = kp_raw − luck_diff × 0.25\nkp_adjusted = clamp(kp_adjusted, 0.02, 0.98)"}
-              <p className="mt-2 text-sm text-muted-foreground">
-                A luck difference of +0.10 (Team A was 10 percentage points luckier than Team B) shifts
-                KenPom win probability down ~2.5 points. The result is clamped so probabilities never reach
-                0% or 100%. This adjustment only affects the KenPom component — market odds are left untouched.
-              </p>
-            </FormulaBlock>
           </div>
         </Section>
 
@@ -165,7 +132,6 @@ export default function AboutPage() {
               current live betting lines at any time.
             </li>
           </ul> */}
-        </Section>
 
         <Divider />
 
