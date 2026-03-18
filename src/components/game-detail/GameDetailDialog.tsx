@@ -167,43 +167,6 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           </div>
         </CollapsibleSection>
 
-        {/* ── Live KenPom Win Probability (shown only during live games) ── */}
-        {isLive && team1 && team2 && kp1 && kp2 &&
-          kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
-          kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
-          const proj = calcKenPomProjection(
-            kp1.tempo, kp1.adjOffense, kp1.adjDefense,
-            kp2.tempo, kp2.adjOffense, kp2.adjDefense
-          );
-          return (
-            <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-foreground/70 uppercase tracking-wider text-[10px]">KenPom Win Probability</span>
-                <span className="text-[10px] text-muted-foreground">Pre-game efficiency model</span>
-              </div>
-              <div className="flex h-6 rounded-full overflow-hidden text-[10px] font-bold text-white">
-                <div
-                  className="flex items-center justify-center transition-all"
-                  style={{ width: `${proj.winProbA * 100}%`, backgroundColor: team1.color }}
-                >
-                  {Math.round(proj.winProbA * 100)}%
-                </div>
-                <div
-                  className="flex items-center justify-center transition-all"
-                  style={{ width: `${proj.winProbB * 100}%`, backgroundColor: team2.color }}
-                >
-                  {Math.round(proj.winProbB * 100)}%
-                </div>
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{team1.abbreviation}</span>
-                <span className="text-[11px]">KenPom efficiency model</span>
-                <span>{team2.abbreviation}</span>
-              </div>
-            </div>
-          );
-        })()}
-
         {/* ── Win Probability (pre/post only — hidden during live games) ── */}
         {prediction && team1 && team2 && !isLive && (
           <CollapsibleSection
@@ -360,8 +323,8 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           );
         })()}
 
-        {/* ── Monte Carlo Simulation ────────────────────────────── */}
-        {team1 && team2 && kp1 && kp2 &&
+        {/* ── Monte Carlo Simulation (pre/post only) ────────────── */}
+        {!isLive && team1 && team2 && kp1 && kp2 &&
           kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
           kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
           const proj = calcKenPomProjection(
@@ -544,8 +507,8 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           </CollapsibleSection>
         )}
 
-        {/* ── KenPom Ratings ────────────────────────────────────── */}
-        {team1 && team2 && (
+        {/* ── KenPom Ratings (pre/post only) ────────────────────── */}
+        {!isLive && team1 && team2 && (
           <CollapsibleSection title="KenPom Ratings" defaultOpen={false} {...sectionProps}>
             <div className="space-y-2 pt-1">
               {(!kp1 && !kp2) ? (
