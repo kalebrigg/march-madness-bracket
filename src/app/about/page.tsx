@@ -138,7 +138,7 @@ export default function AboutPage() {
         <Divider />
 
         {/* Live Games */}
-        <Section title="🔴 Live Games — How the Model Handles In-Progress Games">
+        {/* <Section title="🔴 Live Games — How the Model Handles In-Progress Games">
           <p>
             When a game is in progress, live betting odds move dramatically based on the current score and
             time remaining — they no longer reflect pre-game team quality. Feeding live market odds into our
@@ -164,7 +164,7 @@ export default function AboutPage() {
               Use the <strong>Refresh</strong> button in the header to pull the latest ESPN scores and
               current live betting lines at any time.
             </li>
-          </ul>
+          </ul> */}
         </Section>
 
         <Divider />
