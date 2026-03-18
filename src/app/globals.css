@@ -82,6 +82,7 @@ body {
     margin: 0.25in;
   }
 
+  /* Hide everything that shouldn't print */
   .no-print,
   header,
   footer,
@@ -89,13 +90,12 @@ body {
     display: none !important;
   }
 
-  /* Force desktop bracket layout visible in print */
-  .lg\:flex {
-    display: flex !important;
+  /* Force desktop bracket layout visible — bracket container is "hidden lg:block" */
+  .lg\:block,
+  .hidden.lg\:block {
+    display: block !important;
   }
-  .lg\:hidden {
-    display: none !important;
-  }
+  .lg\:flex,
   .hidden.lg\:flex {
     display: flex !important;
   }
@@ -118,21 +118,18 @@ body {
   main {
     padding: 0 !important;
     max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  /* Scale bracket to fit single landscape page */
+  /*
+    Scale the full bracket to fit one landscape page.
+    zoom shrinks both the visual and layout box — more reliable than transform for print.
+    Tweak this value if the bracket clips: lower = smaller, higher = larger.
+  */
   .bracket-print-container {
-    transform: scale(0.35);
-    transform-origin: top left;
-    width: 285.7%;
-    height: auto !important;
+    zoom: 0.44;
     overflow: visible !important;
     padding-bottom: 0 !important;
-  }
-
-  /* Collapse the transformed element's parent to match scaled size */
-  main {
-    height: auto !important;
-    overflow: visible !important;
   }
 }

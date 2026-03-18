@@ -29,13 +29,15 @@ export function Bracket({ tournament, predictions, odds, kenPomData }: BracketPr
 
   return (
     <>
-      {/* First Four play-in games — shown above main bracket on all screen sizes */}
+      {/* First Four play-in games — screen only, excluded from print */}
       {tournament.firstFour.length > 0 && (
-        <FirstFourSection
-          games={tournament.firstFour}
-          predictions={predictions}
-          onMatchClick={handleMatchClick}
-        />
+        <div className="no-print">
+          <FirstFourSection
+            games={tournament.firstFour}
+            predictions={predictions}
+            onMatchClick={handleMatchClick}
+          />
+        </div>
       )}
 
       {/* Desktop: Full horizontal bracket */}
