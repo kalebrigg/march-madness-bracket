@@ -108,9 +108,9 @@ export function MatchCard({
     Math.max(prediction.team1WinPct, prediction.team2WinPct) < 0.55;
 
   // Determine which team is favored by the model and compute edge color
-  // Show for all statuses so pre-game predictions can be compared to results
+  // Only shown pre-game — hidden for live and final games
   let metricDisplay: React.ReactNode = null;
-  if (prediction && team1 && team2) {
+  if (status === "pre" && prediction && team1 && team2) {
     const favored = prediction.team1WinPct >= prediction.team2WinPct ? 0 : 1;
     const favoredTeam = favored === 0 ? team1 : team2;
     const favoredPct = favored === 0 ? prediction.team1WinPct : prediction.team2WinPct;
@@ -130,9 +130,6 @@ export function MatchCard({
 
     metricDisplay = (
       <span className={cn("tabular-nums flex items-center gap-0.5", edgeColor)}>
-        {status !== "pre" && (
-          <span className="text-[8px] font-normal text-muted-foreground uppercase tracking-wide opacity-70">pre</span>
-        )}
         {favoredTeam.abbreviation} {formatProbability(favoredPct)}
       </span>
     );
