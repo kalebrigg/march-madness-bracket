@@ -167,11 +167,10 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           </div>
         </CollapsibleSection>
 
-        {/* ── Win Probability (pre/post only — hidden during live games) ── */}
-        {prediction && team1 && team2 && !isLive && (
+        {/* ── Win Probability (pre-game only) ── */}
+        {prediction && team1 && team2 && status === "pre" && (
           <CollapsibleSection
             title="Win Probability"
-            badge={status !== "pre" ? <PreGameBadge /> : undefined}
             defaultOpen={true}
             {...sectionProps}
           >
@@ -323,8 +322,8 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           );
         })()}
 
-        {/* ── Monte Carlo Simulation (pre/post only) ────────────── */}
-        {!isLive && team1 && team2 && kp1 && kp2 &&
+        {/* ── Monte Carlo Simulation (pre-game only) ────────────── */}
+        {status === "pre" && team1 && team2 && kp1 && kp2 &&
           kp1.tempo && kp1.adjOffense && kp1.adjDefense &&
           kp2.tempo && kp2.adjOffense && kp2.adjDefense && (() => {
           const proj = calcKenPomProjection(
@@ -342,7 +341,6 @@ export function GameDetailDialog({ matchup, prediction, odds, kenPomData, onClos
           return (
             <CollapsibleSection
               title="Monte Carlo Simulation"
-              badge={status === "post" ? <PreGameBadge /> : undefined}
               defaultOpen={false}
               {...sectionProps}
             >
