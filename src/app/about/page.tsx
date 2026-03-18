@@ -29,29 +29,29 @@ export default function AboutPage() {
 
         {/* Data Sources */}
         <Section title="📡 Where Does the Data Come From?">
-          <p>The site pulls from three independent sources and combines them automatically every few minutes:</p>
+          <p>The site pulls from three independent sources and combines them on every page load:</p>
           <ul className="space-y-4 mt-4">
             <Item title="ESPN Scoreboard API (free, real-time)">
               Provides the live bracket structure — every game, every seed, every team, venue, tip-off time, TV
-              channel, and live/final scores. This is the backbone of the bracket view. Data refreshes every
-              2 minutes so live scores stay current.
+              channel, and live/final scores. This is the backbone of the bracket view. ESPN data is fetched
+              fresh on every page load and on every manual refresh — no caching delay.
             </Item>
             <Item title="The Odds API (real-money sportsbooks)">
-              Pulls live betting lines from <strong>BetMGM, DraftKings, and FanDuel</strong> — the three
+              Pulls betting lines from <strong>BetMGM, DraftKings, and FanDuel</strong> — the three
               largest legal sportsbooks in the US. We collect three types of lines for every game:
               <ul className="mt-2 ml-4 space-y-1 list-disc text-sm">
                 <li><strong>Moneyline</strong> — straight-up winner odds (e.g. −350 / +280)</li>
                 <li><strong>Spread</strong> — point handicap (e.g. Duke −8.5 at −110 juice)</li>
                 <li><strong>Over/Under (O/U)</strong> — total combined points line (e.g. 148.5)</li>
               </ul>
-              Lines refresh every 30 minutes. Not all games have odds available — early-round games are listed
-              before lines open, and some smaller matchups open later.
+              Odds are fetched on every page load and manual refresh. Not all games have odds available —
+              early-round games are listed before lines open, and some smaller matchups open later.
             </Item>
             <Item title="KenPom Efficiency Ratings (2025–26 season)">
               KenPom (kenpom.com) is widely considered the gold standard for college basketball analytics. Their
               ratings represent how efficiently a team scores and defends per 100 possessions, adjusted for the
               strength of every opponent they faced all season. We use the 2025–26 season ratings for all
-              tournament teams.
+              tournament teams, including each team&apos;s <strong>luck</strong> metric (see below).
             </Item>
           </ul>
         </Section>
@@ -66,30 +66,33 @@ export default function AboutPage() {
           </p>
 
           <div className="mt-5 space-y-4">
-            <ModelTier badge="Tier 1 — Best" label="KenPom + Odds + Seed (40 / 40 / 20)" color="green">
+            <ModelTier badge="Tier 1 — Best" label="KenPom + Odds + Seed (55 / 35 / 10)" color="green">
               When all three data sources are available, we blend:
               <ul className="mt-2 ml-4 space-y-1 list-disc text-sm">
                 <li>
-                  <strong>40% KenPom efficiency model</strong> — the most predictive single factor for college
-                  basketball outcomes (see below)
+                  <strong>55% luck-adjusted KenPom efficiency model</strong> — the most predictive single
+                  factor for college basketball outcomes. KenPom win probability is adjusted for each
+                  team&apos;s luck before blending (see Luck Adjustment below).
                 </li>
                 <li>
-                  <strong>40% betting market implied probability</strong> — markets incorporate injury news,
-                  sharp money, and real-world information our model cannot see
+                  <strong>35% betting market implied probability</strong> — markets incorporate injury news,
+                  sharp money, and real-world information our model cannot see. Only <em>pre-game</em> market
+                  odds are used (see Live Games below).
                 </li>
                 <li>
-                  <strong>20% historical seed win rates</strong> — over 40 years of tournament data, certain
-                  seed matchups have extremely strong historical win rates (e.g. 1-seeds win 99.3% vs 16-seeds)
+                  <strong>10% historical seed win rates</strong> — over 40 years of tournament data, certain
+                  seed matchups have extremely strong historical win rates (e.g. 1-seeds win 99.3% vs 16-seeds).
+                  Seed history provides a small regularizing anchor.
                 </li>
               </ul>
             </ModelTier>
-            <ModelTier badge="Tier 2" label="KenPom + Seed (60 / 40)" color="blue">
-              When odds aren&apos;t available yet (no line opened), we use 60% KenPom efficiency win
-              probability + 40% historical seed win rates.
+            <ModelTier badge="Tier 2" label="KenPom + Seed (65 / 35)" color="blue">
+              When odds aren&apos;t available yet (no line opened), we use 65% luck-adjusted KenPom efficiency
+              win probability + 35% historical seed win rates.
             </ModelTier>
-            <ModelTier badge="Tier 3" label="Odds + Seed (70 / 30)" color="yellow">
-              When KenPom data isn&apos;t available for a team (rare), we use 70% betting market implied
-              probability + 30% historical seed win rates.
+            <ModelTier badge="Tier 3" label="Odds + Seed (75 / 25)" color="yellow">
+              When KenPom data isn&apos;t available for a team (rare), we use 75% pre-game betting market
+              implied probability + 25% historical seed win rates.
             </ModelTier>
             <ModelTier badge="Tier 4 — Fallback" label="Historical Seed Model Only" color="gray">
               When neither odds nor KenPom are available, we fall back to pure historical seed-based win rates.
@@ -97,6 +100,71 @@ export default function AboutPage() {
               logistic curve calibrated to historical performance.
             </ModelTier>
           </div>
+        </Section>
+
+        <Divider />
+
+        {/* Luck Adjustment */}
+        <Section title="🍀 KenPom Luck Adjustment">
+          <p>
+            Before blending KenPom&apos;s efficiency-based win probability into the model, we apply a
+            <strong> luck adjustment</strong>. KenPom&apos;s luck metric measures how much a team
+            over- or under-performed their efficiency-implied record due to the outcomes of close games.
+          </p>
+          <ul className="mt-3 space-y-2 text-sm ml-4 list-disc">
+            <li>
+              A <strong>lucky team</strong> (positive luck) won more close games than their underlying
+              efficiency deserved — a pattern that tends to <em>regress</em> in tournament play where
+              efficiency more consistently determines outcomes.
+            </li>
+            <li>
+              An <strong>unlucky team</strong> (negative luck) lost more close games than expected — meaning
+              their record understates their actual quality.
+            </li>
+          </ul>
+
+          <div className="mt-4">
+            <FormulaBlock title="Luck Adjustment Formula">
+              {"luck_diff  = luck_A − luck_B\nkp_adjusted = kp_raw − luck_diff × 0.25\nkp_adjusted = clamp(kp_adjusted, 0.02, 0.98)"}
+              <p className="mt-2 text-sm text-muted-foreground">
+                A luck difference of +0.10 (Team A was 10 percentage points luckier than Team B) shifts
+                KenPom win probability down ~2.5 points. The result is clamped so probabilities never reach
+                0% or 100%. This adjustment only affects the KenPom component — market odds are left untouched.
+              </p>
+            </FormulaBlock>
+          </div>
+        </Section>
+
+        <Divider />
+
+        {/* Live Games */}
+        <Section title="🔴 Live Games — How the Model Handles In-Progress Games">
+          <p>
+            When a game is in progress, live betting odds move dramatically based on the current score and
+            time remaining — they no longer reflect pre-game team quality. Feeding live market odds into our
+            blended model would corrupt the prediction on every refresh (e.g., a team up 15 at halftime would
+            suddenly appear 85% likely to win in our model, even though our model is meant to reflect
+            pre-game efficiency).
+          </p>
+          <p className="mt-3">
+            To prevent this, we <strong>freeze market odds at the time a game tips off</strong>. Specifically:
+          </p>
+          <ul className="mt-3 space-y-2 text-sm ml-4 list-disc">
+            <li>
+              The blended win probability model only uses market odds when <code className="bg-muted px-1 rounded text-xs">status = &quot;pre&quot;</code>.
+              For live or final games, the model drops to KenPom + Seed (Tier 2).
+            </li>
+            <li>
+              The game detail dialog for a <strong>live game</strong> shows only: current score, KenPom
+              efficiency projection (spread, total, win probability), and the current live odds for reference.
+              The blended win probability, Edge &amp; Value, and Monte Carlo sections are hidden during live
+              play since they would reflect pre-game data against live-shifted odds.
+            </li>
+            <li>
+              Use the <strong>Refresh</strong> button in the header to pull the latest ESPN scores and
+              current live betting lines at any time.
+            </li>
+          </ul>
         </Section>
 
         <Divider />
