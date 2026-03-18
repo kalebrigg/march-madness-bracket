@@ -215,11 +215,11 @@ export default function AboutPage() {
             </FormulaBlock>
           </div>
 
-          <div className="mt-5 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">
-            <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+          <div className="mt-5 p-4 bg-card border border-l-4 border-l-yellow-500 rounded-lg text-sm">
+            <p className="font-semibold text-foreground mb-1">
               ⚠️ Why Projected Totals Run High
             </p>
-            <p className="text-amber-700 dark:text-amber-400">
+            <p className="text-muted-foreground">
               The efficiency model consistently projects 5–15 points higher scoring than actual tournament
               game totals. This happens because KenPom ratings are calibrated against a full season of
               opponents — many of them weaker teams. When two above-average offenses play each other with
@@ -427,20 +427,20 @@ function ModelTier({
   color: "green" | "blue" | "yellow" | "gray";
   children: React.ReactNode;
 }) {
-  const boxColors: Record<string, string> = {
-    green: "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800",
-    blue: "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800",
-    yellow: "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800",
-    gray: "bg-muted/50 border-border",
+  const borderColors: Record<string, string> = {
+    green: "border-l-green-500",
+    blue: "border-l-blue-500",
+    yellow: "border-l-yellow-500",
+    gray: "border-l-border",
   };
   const badgeColors: Record<string, string> = {
-    green: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    blue: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    yellow: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    green: "bg-green-500 text-white",
+    blue: "bg-blue-500 text-white",
+    yellow: "bg-yellow-500 text-black",
     gray: "bg-muted text-muted-foreground",
   };
   return (
-    <div className={`rounded-lg border p-4 text-sm ${boxColors[color]}`}>
+    <div className={`rounded-lg border border-l-4 bg-card p-4 text-sm ${borderColors[color]}`}>
       <div className="flex items-center gap-2 mb-2">
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${badgeColors[color]}`}>{badge}</span>
         <span className="font-semibold text-foreground">{label}</span>
